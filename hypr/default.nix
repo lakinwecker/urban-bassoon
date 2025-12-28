@@ -25,27 +25,40 @@ in {
   };
 
   environment.systemPackages = with pkgs; [
-    nwg-drawer
+    hyprshell
     onagre
-    dunst
+    bibata-cursors
     hyprlock
     hypridle
     hyprpaper
-    eww
+    hyprpolkitagent
+    hyprpanel
     playerctl
     brightnessctl
     wl-clipboard
     grim
     slurp
+    wf-recorder
     python3
     socat
     wvkbd
     iio-hyprland
-    # For eww scripts
-    gawk
-    procps
-    gnugrep
-    coreutils
+    # Must-have utilities
+    xdg-desktop-portal-gtk
+    libsForQt5.qt5.qtwayland
+    kdePackages.qtwayland
+    # HyprPanel optional deps
+    hyprsunset
+    pywal
+    swww
+    matugen
+    grimblast
+    hyprpicker
+    btop
+    bluez
+    bluez-tools
+    networkmanagerapplet
+    power-profiles-daemon
   ];
 
   environment.etc."hypr/hyprland.conf".source = ./hyprland.conf;
@@ -57,58 +70,24 @@ in {
     ipc = off
   '';
   environment.etc."wallpaper.jpg".source = ./wallpaper.jpg;
+  environment.etc."hyprpanel/config.json".source = ./hyprpanel-config.json;
+  environment.etc."avatar.png".source = ./avatar.png;
 
-  environment.etc."eww/eww.yuck".source = ./eww/eww.yuck;
-  environment.etc."eww/eww.scss".source = ./eww/eww.scss;
-  environment.etc."eww/scripts/battery" = {
-    source = ./eww/scripts/battery;
-    mode = "0755";
+  system.activationScripts.hyprConfig = {
+    deps = [ "userDirs" ];
+    text = ''
+      mkdir -p /home/nixos/.config/hypr
+      mkdir -p /home/nixos/.config/hyprpanel
+      ln -sf /etc/hypr/hyprland.conf /home/nixos/.config/hypr/hyprland.conf
+      ln -sf /etc/hypr/hypridle.conf /home/nixos/.config/hypr/hypridle.conf
+      ln -sf /etc/hypr/hyprlock.conf /home/nixos/.config/hypr/hyprlock.conf
+      ln -sf /etc/hypr/hyprpaper.conf /home/nixos/.config/hypr/hyprpaper.conf
+      # Force copy hyprpanel config (overwrite any existing)
+      cp -f /etc/hyprpanel/config.json /home/nixos/.config/hyprpanel/config.json
+      chown nixos:users /home/nixos/.config/hyprpanel/config.json
+      # User avatar
+      cp -f /etc/avatar.png /home/nixos/.face.icon
+      chown nixos:users /home/nixos/.face.icon
+    '';
   };
-  environment.etc."eww/scripts/mem-ad" = {
-    source = ./eww/scripts/mem-ad;
-    mode = "0755";
-  };
-  environment.etc."eww/scripts/memory" = {
-    source = ./eww/scripts/memory;
-    mode = "0755";
-  };
-  environment.etc."eww/scripts/music_info" = {
-    source = ./eww/scripts/music_info;
-    mode = "0755";
-  };
-  environment.etc."eww/scripts/pop" = {
-    source = ./eww/scripts/pop;
-    mode = "0755";
-  };
-  environment.etc."eww/scripts/time" = {
-    source = ./eww/scripts/time;
-    mode = "0755";
-  };
-  environment.etc."eww/scripts/wifi" = {
-    source = ./eww/scripts/wifi;
-    mode = "0755";
-  };
-  environment.etc."eww/scripts/workspace.py" = {
-    source = ./eww/scripts/workspace.py;
-    mode = "0755";
-  };
-
-  system.activationScripts.hyprConfig = ''
-    mkdir -p /home/nixos/.config/hypr
-    mkdir -p /home/nixos/.config/eww/scripts
-    ln -sf /etc/hypr/hyprland.conf /home/nixos/.config/hypr/hyprland.conf
-    ln -sf /etc/hypr/hypridle.conf /home/nixos/.config/hypr/hypridle.conf
-    ln -sf /etc/hypr/hyprlock.conf /home/nixos/.config/hypr/hyprlock.conf
-    ln -sf /etc/hypr/hyprpaper.conf /home/nixos/.config/hypr/hyprpaper.conf
-    ln -sf /etc/eww/eww.yuck /home/nixos/.config/eww/eww.yuck
-    ln -sf /etc/eww/eww.scss /home/nixos/.config/eww/eww.scss
-    ln -sf /etc/eww/scripts/battery /home/nixos/.config/eww/scripts/battery
-    ln -sf /etc/eww/scripts/mem-ad /home/nixos/.config/eww/scripts/mem-ad
-    ln -sf /etc/eww/scripts/memory /home/nixos/.config/eww/scripts/memory
-    ln -sf /etc/eww/scripts/music_info /home/nixos/.config/eww/scripts/music_info
-    ln -sf /etc/eww/scripts/pop /home/nixos/.config/eww/scripts/pop
-    ln -sf /etc/eww/scripts/time /home/nixos/.config/eww/scripts/time
-    ln -sf /etc/eww/scripts/wifi /home/nixos/.config/eww/scripts/wifi
-    ln -sf /etc/eww/scripts/workspace.py /home/nixos/.config/eww/scripts/workspace.py
-  '';
 }
