@@ -30,12 +30,12 @@ in {
     bibata-cursors
     hyprlock
     hypridle
-    hyprpaper
     hyprpolkitagent
     hyprpanel
     playerctl
     brightnessctl
     wl-clipboard
+    wtype
     grim
     slurp
     wf-recorder
@@ -64,30 +64,31 @@ in {
   environment.etc."hypr/hyprland.conf".source = ./hyprland.conf;
   environment.etc."hypr/hypridle.conf".source = ./hypridle.conf;
   environment.etc."hypr/hyprlock.conf".source = ./hyprlock.conf;
-  environment.etc."hypr/hyprpaper.conf".text = ''
-    preload = /etc/wallpaper.jpg
-    wallpaper = ,/etc/wallpaper.jpg
-    ipc = off
-  '';
   environment.etc."wallpaper.jpg".source = ./wallpaper.jpg;
   environment.etc."hyprpanel/config.json".source = ./hyprpanel-config.json;
+  environment.etc."hyprpanel/custom.css".source = ./hyprpanel-custom.css;
   environment.etc."avatar.png".source = ./avatar.png;
 
   system.activationScripts.hyprConfig = {
     deps = [ "userDirs" ];
     text = ''
       mkdir -p /home/nixos/.config/hypr
-      mkdir -p /home/nixos/.config/hyprpanel
+      mkdir -p /home/nixos/.config/hyprpanel/styles
       ln -sf /etc/hypr/hyprland.conf /home/nixos/.config/hypr/hyprland.conf
       ln -sf /etc/hypr/hypridle.conf /home/nixos/.config/hypr/hypridle.conf
       ln -sf /etc/hypr/hyprlock.conf /home/nixos/.config/hypr/hyprlock.conf
-      ln -sf /etc/hypr/hyprpaper.conf /home/nixos/.config/hypr/hyprpaper.conf
       # Force copy hyprpanel config (overwrite any existing)
       cp -f /etc/hyprpanel/config.json /home/nixos/.config/hyprpanel/config.json
-      chown nixos:users /home/nixos/.config/hyprpanel/config.json
+      cp -f /etc/hyprpanel/custom.css /home/nixos/.config/hyprpanel/styles/custom.css
       # User avatar
       cp -f /etc/avatar.png /home/nixos/.face.icon
       chown nixos:users /home/nixos/.face.icon
+      # Wallpaper for HyprPanel
+      cp -f /etc/wallpaper.jpg /home/nixos/.config/background
+      chown nixos:users /home/nixos/.config/background
+      # Fix all hyprpanel permissions
+      chown -R nixos:users /home/nixos/.config/hyprpanel
+      chmod -R u+rw /home/nixos/.config/hyprpanel
     '';
   };
 }
