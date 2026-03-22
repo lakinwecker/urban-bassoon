@@ -9,7 +9,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland = {
-      url = "github:hyprwm/Hyprland";
+      # Pinned to match hyprgrass compatibility (0.8.2)
+      url = "github:hyprwm/Hyprland/70cdd819e4bee3c4dcea6961d32e61e6afe4eeb0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprgrass = {
@@ -65,6 +66,7 @@
     surfaceModules = commonModules ++ [
       nixos-hardware.nixosModules.microsoft-surface-pro-intel
       ({ lib, pkgs, ... }: {
+        hardware.microsoft-surface.kernelVersion = "stable";
         boot.supportedFilesystems.zfs = lib.mkForce false;
         boot.kernelPatches = [{
           name = "disable-rust";
