@@ -26,9 +26,16 @@
       ./hypr
       ./ghostty
       ./nvim
+      ./fish
+      ./starship
+      ./bin
+      ./zellij
+      ./nebula.nix
+      ./syncthing.nix
       ({ lib, pkgs, ... }: {
         nixpkgs.config.allowUnfree = true;
         hardware.enableRedistributableFirmware = true;
+        users.defaultUserShell = pkgs.fish;
         hardware.bluetooth.enable = true;
         services.blueman.enable = true;
         services.upower.enable = true;
@@ -45,6 +52,38 @@
           alsa.enable = true;
           pulse.enable = true;
         };
+
+        # ── Shells ────────────────────────────────────────────────────────
+        programs.bash.enable = true;
+
+        programs.fish = {
+          enable = true;
+          # Registers fish in /etc/shells so it can be a login shell.
+        };
+
+        # programs.nushell is a home-manager option, not a NixOS one.
+        # nushell is installed via environment.systemPackages below.
+
+        # ── SSH ───────────────────────────────────────────────────────────
+        services.openssh = {
+          enable = true;
+          settings = {
+            PasswordAuthentication = false;
+            PermitRootLogin = "no";
+          };
+        };
+
+        # ── Packages ──────────────────────────────────────────────────────
+        environment.systemPackages = with pkgs; [
+          claude-code
+          # Shell extras
+          fish
+          nushell
+          bash
+          keepassxc
+          # SSH tooling
+          openssh
+        ];
 
         fonts.fontconfig.enable = true;
         fonts.fontDir.enable = true;
@@ -73,6 +112,25 @@
           patch = null;
           structuredExtraConfig = { RUST = lib.mkForce lib.kernel.no; };
         }];
+
+        # Load Surface HID/keyboard modules in initrd so the Type Cover
+        # works at the LUKS passphrase prompt.
+        boot.initrd.kernelModules = [
+          # Intel LPSS + pin control -- brings up the UART that SAM talks over
+          "pinctrl_alderlake"
+          "intel_lpss"
+          "intel_lpss_pci"
+          # Surface Aggregator serial transport
+          "8250_dw"
+          # SAM core + device enumeration
+          "surface_aggregator"
+          "surface_aggregator_registry"
+          "surface_aggregator_hub"
+          # Type Cover HID
+          "surface_hid_core"
+          "surface_hid"
+          "hid_multitouch"
+        ];
 
         services.iptsd.enable = true;
         hardware.sensor.iio.enable = true;
@@ -152,9 +210,9 @@
 
           environment.systemPackages = [ disko.packages.x86_64-linux.disko ];
 
-          users.users.nixos = {
+          users.users.lakin = {
             isNormalUser = true;
-            home = "/home/nixos";
+            home = "/home/lakin";
             createHome = true;
             extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
           };
@@ -162,9 +220,9 @@
           system.activationScripts.userDirs = {
             deps = [ "users" ];
             text = ''
-              mkdir -p /home/nixos/.config/hyprpanel
-              mkdir -p /home/nixos/.config/hyprshell
-              chown -R nixos:users /home/nixos
+              mkdir -p /home/lakin/.config/hyprpanel
+              mkdir -p /home/lakin/.config/hyprshell
+              chown -R lakin:users /home/lakin
             '';
           };
 
@@ -213,9 +271,9 @@
 
           environment.systemPackages = [ disko.packages.x86_64-linux.disko ];
 
-          users.users.nixos = {
+          users.users.lakin = {
             isNormalUser = true;
-            home = "/home/nixos";
+            home = "/home/lakin";
             createHome = true;
             extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
           };
@@ -223,9 +281,9 @@
           system.activationScripts.userDirs = {
             deps = [ "users" ];
             text = ''
-              mkdir -p /home/nixos/.config/hyprpanel
-              mkdir -p /home/nixos/.config/hyprshell
-              chown -R nixos:users /home/nixos
+              mkdir -p /home/lakin/.config/hyprpanel
+              mkdir -p /home/lakin/.config/hyprshell
+              chown -R lakin:users /home/lakin
             '';
           };
 
@@ -274,9 +332,9 @@
 
           environment.systemPackages = [ disko.packages.x86_64-linux.disko ];
 
-          users.users.nixos = {
+          users.users.lakin = {
             isNormalUser = true;
-            home = "/home/nixos";
+            home = "/home/lakin";
             createHome = true;
             extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
           };
@@ -284,9 +342,9 @@
           system.activationScripts.userDirs = {
             deps = [ "users" ];
             text = ''
-              mkdir -p /home/nixos/.config/hyprpanel
-              mkdir -p /home/nixos/.config/hyprshell
-              chown -R nixos:users /home/nixos
+              mkdir -p /home/lakin/.config/hyprpanel
+              mkdir -p /home/lakin/.config/hyprshell
+              chown -R lakin:users /home/lakin
             '';
           };
 

@@ -1,49 +1,11 @@
--- Bootstrap lazy.nvim
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not (vim.uv or vim.loop).fs_stat(lazypath) then
-  local lazyrepo = "https://github.com/folke/lazy.nvim.git"
-  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
-  if vim.v.shell_error ~= 0 then
-    vim.api.nvim_echo({
-      { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
-      { out, "WarningMsg" },
-      { "\nPress any key to exit..." },
-    }, true, {})
-    vim.fn.getchar()
-    os.exit(1)
-  end
+-- bootstrap lazy.nvim, LazyVim and your plugins
+require("config.lazy")
+
+if vim.g.neovide then
+  vim.o.guifont = "Iosevka Term:h10"
+  vim.g.neovide_transparency = 0.7
+  vim.g.neovide_padding_top = 10
+  vim.g.neovide_padding_bottom = 10
+  vim.g.neovide_padding_right = 10
+  vim.g.neovide_padding_left = 10
 end
-vim.opt.rtp:prepend(lazypath)
-
--- Make sure to setup `mapleader` and `maplocalleader` before
--- loading lazy.nvim so that mappings are correct.
-vim.g.mapleader = " "
-vim.g.maplocalleader = "\\"
-
--- Setup lazy.nvim
-require("lazy").setup({
-  spec = {
-    { "LazyVim/LazyVim", import = "lazyvim.plugins" },
-    { import = "plugins" },
-  },
-  defaults = {
-    lazy = false,
-    version = false,
-  },
-  install = { colorscheme = { "tokyonight", "habamax" } },
-  checker = {
-    enabled = true,
-    notify = false,
-  },
-  performance = {
-    rtp = {
-      disabled_plugins = {
-        "gzip",
-        "tarPlugin",
-        "tohtml",
-        "tutor",
-        "zipPlugin",
-      },
-    },
-  },
-})

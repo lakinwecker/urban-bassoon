@@ -6,7 +6,7 @@
   environment.etc."ghostty/config".source = ./config;
 
   system.activationScripts.ghosttyConfig = ''
-    mkdir -p /home/nixos/.config/ghostty
-    ln -sf /etc/ghostty/config /home/nixos/.config/ghostty/config
+    mkdir -p /home/lakin/.config/ghostty
+    ln -sf /etc/ghostty/config /home/lakin/.config/ghostty/config
   '';
 }

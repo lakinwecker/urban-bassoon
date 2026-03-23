@@ -19,7 +19,7 @@ in {
     settings = {
       default_session = {
         command = "Hyprland";
-        user = "nixos";
+        user = "lakin";
       };
     };
   };
@@ -70,25 +70,25 @@ in {
   environment.etc."avatar.png".source = ./avatar.png;
 
   system.activationScripts.hyprConfig = {
-    deps = [ "userDirs" ];
+    deps = [ "users" ];
     text = ''
-      mkdir -p /home/nixos/.config/hypr
-      mkdir -p /home/nixos/.config/hyprpanel/styles
-      ln -sf /etc/hypr/hyprland.conf /home/nixos/.config/hypr/hyprland.conf
-      ln -sf /etc/hypr/hypridle.conf /home/nixos/.config/hypr/hypridle.conf
-      ln -sf /etc/hypr/hyprlock.conf /home/nixos/.config/hypr/hyprlock.conf
+      mkdir -p /home/lakin/.config/hypr
+      mkdir -p /home/lakin/.config/hyprpanel/styles
+      ln -sf /etc/hypr/hyprland.conf /home/lakin/.config/hypr/hyprland.conf
+      ln -sf /etc/hypr/hypridle.conf /home/lakin/.config/hypr/hypridle.conf
+      ln -sf /etc/hypr/hyprlock.conf /home/lakin/.config/hypr/hyprlock.conf
       # Force copy hyprpanel config (overwrite any existing)
-      cp -f /etc/hyprpanel/config.json /home/nixos/.config/hyprpanel/config.json
-      cp -f /etc/hyprpanel/custom.css /home/nixos/.config/hyprpanel/styles/custom.css
+      cp -f /etc/hyprpanel/config.json /home/lakin/.config/hyprpanel/config.json
+      cp -f /etc/hyprpanel/custom.css /home/lakin/.config/hyprpanel/styles/custom.css
       # User avatar
-      cp -f /etc/avatar.png /home/nixos/.face.icon
-      chown nixos:users /home/nixos/.face.icon
+      cp -f /etc/avatar.png /home/lakin/.face.icon
+      chown lakin:users /home/lakin/.face.icon
       # Wallpaper for HyprPanel
-      cp -f /etc/wallpaper.jpg /home/nixos/.config/background
-      chown nixos:users /home/nixos/.config/background
+      cp -f /etc/wallpaper.jpg /home/lakin/.config/background
+      chown lakin:users /home/lakin/.config/background
       # Fix all hyprpanel permissions
-      chown -R nixos:users /home/nixos/.config/hyprpanel
-      chmod -R u+rw /home/nixos/.config/hyprpanel
+      chown -R lakin:users /home/lakin/.config/hyprpanel
+      chmod -R u+rw /home/lakin/.config/hyprpanel
     '';
   };
 }
