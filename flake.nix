@@ -81,6 +81,8 @@
           nushell
           bash
           keepassxc
+          pass
+          gnupg
           # SSH tooling
           openssh
         ];
@@ -113,23 +115,21 @@
           structuredExtraConfig = { RUST = lib.mkForce lib.kernel.no; };
         }];
 
-        # Load Surface HID/keyboard modules in initrd so the Type Cover
-        # works at the LUKS passphrase prompt.
+        # Type Cover at LUKS prompt — modules matched from running system via lsmod/sysfs
         boot.initrd.kernelModules = [
-          # Intel LPSS + pin control -- brings up the UART that SAM talks over
-          "pinctrl_alderlake"
+          "pinctrl_tigerlake"
           "intel_lpss"
           "intel_lpss_pci"
-          # Surface Aggregator serial transport
           "8250_dw"
-          # SAM core + device enumeration
+          "crc_itu_t"
           "surface_aggregator"
           "surface_aggregator_registry"
           "surface_aggregator_hub"
-          # Type Cover HID
           "surface_hid_core"
           "surface_hid"
+          "hid_surface"
           "hid_multitouch"
+          "ithc"
         ];
 
         services.iptsd.enable = true;
