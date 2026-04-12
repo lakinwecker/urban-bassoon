@@ -43,10 +43,30 @@ fi
 NIX_FLAGS=(--extra-experimental-features 'nix-command flakes')
 
 echo
+echo "==> Phase 0: close any stale LUKS mappings and blkdiscard both drives"
+# Leftover LUKS headers from previous attempts (at identical byte offsets,
+# openable with the same passphrase) can trick disko into skipping luksFormat
+# and then skipping mkfs.btrfs, landing us in a half-formatted state. A full
+# blkdiscard guarantees every sector is gone.
+for name in cryptroot crypthome; do
+  if [ -e "/dev/mapper/$name" ]; then
+    sudo cryptsetup close "$name" || true
+  fi
+done
+sudo umount -R /mnt 2>/dev/null || true
+
+for d in "$MAIN_DISK" "$HOME_DISK"; do
+  real="$(readlink -f "$d")"
+  echo "  blkdiscard $real"
+  sudo blkdiscard -f "$real"
+done
+
+echo
 echo "==> Phase 1: disko (destroy, format, mount)"
 sudo nix "${NIX_FLAGS[@]}" run github:nix-community/disko -- \
   --mode destroy,format,mount \
   --root-mountpoint /mnt \
+  --yes-wipe-all-disks \
   --flake .#asus-tuf
 
 echo
