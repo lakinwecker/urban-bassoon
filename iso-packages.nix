@@ -26,6 +26,8 @@
     curl
     jq
     tree-sitter
+    # KVM
+    lan-mouse
   ];
 
   # Docker

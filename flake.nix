@@ -42,6 +42,31 @@
 
         networking.networkmanager.enable = true;
 
+        services.avahi = {
+          enable = true;
+          nssmdns4 = true;
+          denyInterfaces = [ "docker0" "br-+" "veth+" "nebula1" ];
+          publish = {
+            enable = true;
+            addresses = true;
+          };
+        };
+
+        # lan-mouse KVM — listen on port 4343 (4242 used by nebula)
+        networking.firewall.allowedTCPPorts = [ 4343 ];
+        networking.firewall.allowedUDPPorts = [ 4343 ];
+
+        systemd.user.services.lan-mouse = {
+          description = "lan-mouse KVM";
+          after = [ "graphical-session.target" ];
+          wantedBy = [ "graphical-session.target" ];
+          serviceConfig = {
+            ExecStart = "${pkgs.lan-mouse}/bin/lan-mouse --daemon";
+            Restart = "on-failure";
+            RestartSec = 5;
+          };
+        };
+
         time.timeZone = "America/Edmonton";
         time.hardwareClockInLocalTime = true;
 
@@ -138,6 +163,10 @@
           "ithc"
         ];
 
+        # surface_gpe causes wake failures when Type Cover is closed
+        # during suspend — handle lid via logind instead
+        boot.blacklistedKernelModules = [ "surface_gpe" ];
+
         services.iptsd.enable = true;
         hardware.sensor.iio.enable = true;
 
@@ -170,12 +199,47 @@
         boot.kernelParams = [
           "mem_sleep_default=s2idle"
           "i915.enable_psr=0"       # panel self-refresh can block wake
+          "resume_offset=39068928"
         ];
+        boot.resumeDevice = "/dev/mapper/cryptroot";
 
         systemd.sleep.settings.Sleep = {
           AllowSuspend = "yes";
+          AllowHibernation = "yes";
+          AllowSuspendThenHibernate = "yes";
           SuspendState = "freeze";
+          HibernateDelaySec = "30min";
         };
+
+        services.logind = {
+          lidSwitch = "suspend-then-hibernate";
+          lidSwitchExternalPower = "suspend-then-hibernate";
+        };
+
+        # Reload ithc + iptsd after resume — touchpad loses state on hibernate
+        powerManagement.powerUpCommands = ''
+          modprobe -r ithc 2>/dev/null; modprobe ithc 2>/dev/null
+          systemctl restart iptsd 2>/dev/null || true
+        '';
+
+        # Prevent XHCI (USB 3.0) from triggering instant wake
+        powerManagement.powerDownCommands = ''
+          for dev in XHCI XHC; do
+            if grep -q "$dev.*enabled" /proc/acpi/wakeup; then
+              echo "$dev" > /proc/acpi/wakeup
+            fi
+          done
+        '';
+
+        # Btrfs swapfile for hibernate — set NOCOW before creation
+        system.activationScripts.swapNocow = {
+          text = ''
+            if [ -d /swap ]; then
+              ${pkgs.e2fsprogs}/bin/chattr +C /swap 2>/dev/null || true
+            fi
+          '';
+        };
+        swapDevices = [{ device = "/swap/swapfile"; size = 32 * 1024; }];
 
         environment.systemPackages = with pkgs; [ powertop lm_sensors ];
       })
@@ -266,6 +330,23 @@
           boot.loader.efi.canTouchEfiVariables = true;
 
           networking.hostName = "harry";
+
+          system.activationScripts.lanMouseConfig = {
+            deps = [ "users" ];
+            text = ''
+              mkdir -p /home/lakin/.config/lan-mouse
+              cat > /home/lakin/.config/lan-mouse/config.toml << 'EOF'
+port = 4343
+
+[top]
+hostname = "trunkie.local"
+ips = ["192.168.50.15"]
+port = 4343
+activate_on_startup = true
+EOF
+              chown -R lakin:users /home/lakin/.config/lan-mouse
+            '';
+          };
 
           users.users.lakin = {
             isNormalUser = true;
