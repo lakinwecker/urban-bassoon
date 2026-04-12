@@ -335,6 +335,20 @@
           MOZ_ENABLE_WAYLAND = "1";
           ELECTRON_OZONE_PLATFORM_HINT = "auto";
         };
+        # Initrd needs NVMe drivers or the second drive's partlabel
+        # symlinks race and never appear, hanging stage-1 on
+        # "waiting for /dev/disk/by-partlabel/disk-home-luks".
+        boot.initrd.availableKernelModules = [
+          "nvme"
+          "nvme_core"
+          "xhci_pci"
+          "ahci"
+          "usbhid"
+          "usb_storage"
+          "sd_mod"
+        ];
+        boot.initrd.kernelModules = [ "nvme" ];
+
         boot.kernelParams = [
           "nvidia_drm.modeset=1"
           "nvidia_drm.fbdev=1"
