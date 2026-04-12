@@ -1,12 +1,13 @@
 { lib, ... }:
 {
-  # Single btrfs pool spanning both NVMe drives via two LUKS containers.
-  # Data/metadata profile: single (~1.85 TB usable, any disk failure = total loss).
-  # Backups are the safety net, not redundancy.
+  # Two separate btrfs filesystems, one per NVMe drive.
+  # - main (nvme0n1): ESP + LUKS cryptroot → btrfs with /, /nix
+  # - home (nvme1n1):        LUKS crypthome → btrfs with /home
   #
-  # Note: btrfs swapfiles are unsupported on multi-device filesystems,
-  # so there is no /swap subvolume here. Add a dedicated swap partition
-  # if hibernate is ever needed.
+  # No multi-device spanning — simpler, survives one-disk failure
+  # (the surviving disk still boots or still has /home data).
+  # Tradeoff: /home is capped at ~930 GB; can't grow past that
+  # without adding capacity.
   disko.devices = {
     disk = {
       main = {
@@ -34,20 +35,7 @@
                 settings.allowDiscards = true;
                 content = {
                   type = "btrfs";
-                  extraArgs = [ "-f" "-L" "pool" "-d" "single" "-m" "single" ];
-                  # postCreateHook runs after mkfs but before disko mounts
-                  # the filesystem, so /mnt is not yet the btrfs. Mount
-                  # cryptroot to a temp dir, add crypthome as a second
-                  # device, rebalance, then unmount so disko's normal
-                  # mount step proceeds on the now-multi-device pool.
-                  postCreateHook = ''
-                    tmp=$(mktemp -d)
-                    mount /dev/mapper/cryptroot "$tmp"
-                    btrfs device add -f /dev/mapper/crypthome "$tmp"
-                    btrfs balance start --full-balance "$tmp"
-                    umount "$tmp"
-                    rmdir "$tmp"
-                  '';
+                  extraArgs = [ "-f" "-L" "root" ];
                   subvolumes = {
                     "/root" = {
                       mountpoint = "/";
@@ -55,10 +43,6 @@
                     };
                     "/nix" = {
                       mountpoint = "/nix";
-                      mountOptions = [ "compress=zstd" "noatime" ];
-                    };
-                    "/home" = {
-                      mountpoint = "/home";
                       mountOptions = [ "compress=zstd" "noatime" ];
                     };
                   };
@@ -81,12 +65,15 @@
                 name = "crypthome";
                 passwordFile = "/tmp/disk-password";
                 settings.allowDiscards = true;
-                # Placeholder btrfs — disko's luks type requires a content
-                # node. It's immediately wiped and absorbed into the main
-                # pool by the postCreateHook above (btrfs device add -f).
                 content = {
                   type = "btrfs";
-                  extraArgs = [ "-f" ];
+                  extraArgs = [ "-f" "-L" "home" ];
+                  subvolumes = {
+                    "/home" = {
+                      mountpoint = "/home";
+                      mountOptions = [ "compress=zstd" "noatime" ];
+                    };
+                  };
                 };
               };
             };

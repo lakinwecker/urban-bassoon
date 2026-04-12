@@ -118,6 +118,8 @@
           pinentry-curses
           # SSH tooling
           openssh
+          # Hardware / system inspection
+          inxi
         ];
 
         fonts.fontconfig.enable = true;
@@ -333,7 +335,33 @@
           MOZ_ENABLE_WAYLAND = "1";
           ELECTRON_OZONE_PLATFORM_HINT = "auto";
         };
-        boot.kernelParams = [ "nvidia_drm.modeset=1" "nvidia_drm.fbdev=1" ];
+        boot.kernelParams = [
+          "nvidia_drm.modeset=1"
+          "nvidia_drm.fbdev=1"
+          # Cap CPU idle depth. Full C10 exit latency on Raptor Lake
+          # can spike to hundreds of ms under load — visible as mouse/
+          # input stutter. C3 keeps most idle savings, cuts worst-case
+          # wake latency dramatically. Raise to higher number if battery
+          # suffers and stutter is gone.
+          "intel_idle.max_cstate=3"
+          "processor.max_cstate=3"
+        ];
+
+        # Distribute hardware IRQs across cores instead of piling on CPU0.
+        # Prevents input stutter when CPU0 is momentarily saturated.
+        services.irqbalance.enable = true;
+
+        # Disable USB autosuspend for HID (input) devices. USB mice and
+        # keyboards don't meaningfully save power from autosuspend, but
+        # the first event after an idle window incurs a 100–500ms wake
+        # penalty that shows up as "mouse froze for a moment."
+        services.udev.extraRules = ''
+          # USB HID (bInterfaceClass 03) — disable autosuspend
+          ACTION=="add", SUBSYSTEM=="usb", ATTR{bInterfaceClass}=="03", TEST=="power/control", ATTR{power/control}="on"
+          # Also target the parent device for class-03 children
+          ACTION=="add", SUBSYSTEM=="usb", ATTR{bDeviceClass}=="00", ATTR{product}=="*Mouse*", TEST=="power/control", ATTR{power/control}="on"
+          ACTION=="add", SUBSYSTEM=="usb", ATTR{bDeviceClass}=="00", ATTR{product}=="*Keyboard*", TEST=="power/control", ATTR{power/control}="on"
+        '';
 
         services.power-profiles-daemon.enable = false;
         services.tlp = {
@@ -349,9 +377,14 @@
             CPU_BOOST_ON_BAT = 0;
             CPU_HWP_DYN_BOOST_ON_BAT = 0;
             RUNTIME_PM_ON_BAT = "auto";
+            # USB autosuspend stays ON for non-HID devices; the udev
+            # rule above whitelists mice/keyboards back to "on".
             USB_AUTOSUSPEND = 1;
             WIFI_PWR_ON_BAT = "on";
-            PCIE_ASPM_ON_BAT = "powersupersave";
+            # "default" instead of "powersupersave" — the latter enables
+            # L1.2 substate with ~10ms+ exit latency per PCIe hop, a
+            # known source of periodic input stutter on Asus boards.
+            PCIE_ASPM_ON_BAT = "default";
             NMI_WATCHDOG = 0;
             SATA_LINKPWR_ON_BAT = "med_power_with_dipm";
           };
