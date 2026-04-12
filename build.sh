@@ -24,6 +24,7 @@ fi
 
 for cfg in "${configs[@]}"; do
   echo "Building ${cfg}-iso..."
-  nix build ".#nixosConfigurations.${cfg}-iso.config.system.build.isoImage" -o "result-${cfg}"
+  nix --extra-experimental-features 'nix-command flakes' build \
+    ".#nixosConfigurations.${cfg}-iso.config.system.build.isoImage" -o "result-${cfg}"
   echo "Done: result-${cfg}"
 done
