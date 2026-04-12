@@ -9,10 +9,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland = {
-      # Pinned to match hyprgrass compatibility (0.8.2)
-      url = "github:hyprwm/Hyprland/70cdd819e4bee3c4dcea6961d32e61e6afe4eeb0";
+      # Tagged release — cacheable. Bump in lockstep with hyprgrass when needed.
+      url = "github:hyprwm/Hyprland/v0.54.3";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # hyprgrass is Surface-only (touchscreen gestures). Tracks main; the
+    # surface configs are the only ones that pass it through to hypr/default.nix.
     hyprgrass = {
       url = "github:horriblename/hyprgrass";
       inputs.hyprland.follows = "hyprland";
@@ -211,16 +213,26 @@
           HibernateDelaySec = "30min";
         };
 
-        services.logind = {
-          lidSwitch = "suspend-then-hibernate";
-          lidSwitchExternalPower = "suspend-then-hibernate";
+        services.logind.settings.Login = {
+          HandleLidSwitch = "suspend-then-hibernate";
+          HandleLidSwitchExternalPower = "suspend-then-hibernate";
         };
 
-        # Reload ithc + iptsd after resume — touchpad loses state on hibernate
-        powerManagement.powerUpCommands = ''
-          modprobe -r ithc 2>/dev/null; modprobe ithc 2>/dev/null
-          systemctl restart iptsd 2>/dev/null || true
-        '';
+        # Reload ithc + iptsd after resume — touchpad loses state on hibernate.
+        # post-resume.target is reached after resume completes.
+        systemd.services.surface-touchscreen-resume = {
+          description = "Reload ithc and restart iptsd after resume (Surface Pro 9)";
+          wantedBy = [ "post-resume.target" ];
+          after = [ "post-resume.target" ];
+          serviceConfig = {
+            Type = "oneshot";
+            ExecStart = pkgs.writeShellScript "surface-touchscreen-resume" ''
+              ${pkgs.kmod}/bin/modprobe -r ithc 2>/dev/null || true
+              ${pkgs.kmod}/bin/modprobe ithc 2>/dev/null || true
+              ${pkgs.systemd}/bin/systemctl restart iptsd 2>/dev/null || true
+            '';
+          };
+        };
 
         # Prevent XHCI (USB 3.0) from triggering instant wake
         powerManagement.powerDownCommands = ''
@@ -263,6 +275,79 @@
             PLATFORM_PROFILE_ON_AC = "performance";
 
             CPU_BOOST_ON_BAT = 0;
+            RUNTIME_PM_ON_BAT = "auto";
+            USB_AUTOSUSPEND = 1;
+            WIFI_PWR_ON_BAT = "on";
+            PCIE_ASPM_ON_BAT = "powersupersave";
+            NMI_WATCHDOG = 0;
+            SATA_LINKPWR_ON_BAT = "med_power_with_dipm";
+          };
+        };
+        powerManagement.powertop.enable = true;
+        environment.systemPackages = with pkgs; [ powertop lm_sensors ];
+      })
+    ];
+
+    asusModules = commonModules ++ [
+      nixos-hardware.nixosModules.common-cpu-intel
+      nixos-hardware.nixosModules.common-gpu-nvidia-nonprime
+      nixos-hardware.nixosModules.common-pc-laptop
+      nixos-hardware.nixosModules.common-pc-laptop-ssd
+      ({ lib, pkgs, config, ... }: {
+        # Asus TUF Gaming F16 (FX608JM) — Intel Raptor Lake + NVIDIA RTX
+        services.asusd.enable = true;
+        services.supergfxd.enable = true;
+
+        # Boot in integrated mode (iGPU only) for battery life.
+        # Switch at runtime with: supergfxctl -m Hybrid  (requires logout)
+        environment.etc."supergfxd.conf".text = builtins.toJSON {
+          mode = "Integrated";
+          vfio_enable = false;
+          vfio_save = false;
+          always_reboot = false;
+          no_logind = false;
+          logout_timeout_s = 180;
+          hotplug_type = "None";
+        };
+
+        hardware.graphics = {
+          enable = true;
+          enable32Bit = true;
+        };
+
+        hardware.nvidia = {
+          modesetting.enable = true;
+          open = true;
+          nvidiaSettings = true;
+          powerManagement.enable = true;
+          package = config.boot.kernelPackages.nvidiaPackages.stable;
+        };
+        services.xserver.videoDrivers = [ "nvidia" ];
+
+        # Wayland / Hyprland on NVIDIA
+        environment.sessionVariables = {
+          LIBVA_DRIVER_NAME = "nvidia";
+          GBM_BACKEND = "nvidia-drm";
+          __GLX_VENDOR_LIBRARY_NAME = "nvidia";
+          NVD_BACKEND = "direct";
+          MOZ_ENABLE_WAYLAND = "1";
+          ELECTRON_OZONE_PLATFORM_HINT = "auto";
+        };
+        boot.kernelParams = [ "nvidia_drm.modeset=1" "nvidia_drm.fbdev=1" ];
+
+        services.power-profiles-daemon.enable = false;
+        services.tlp = {
+          enable = true;
+          settings = {
+            CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+            CPU_SCALING_GOVERNOR_ON_AC = "performance";
+            CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
+            CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
+            PLATFORM_PROFILE_ON_BAT = "low-power";
+            PLATFORM_PROFILE_ON_AC = "performance";
+
+            CPU_BOOST_ON_BAT = 0;
+            CPU_HWP_DYN_BOOST_ON_BAT = 0;
             RUNTIME_PM_ON_BAT = "auto";
             USB_AUTOSUSPEND = 1;
             WIFI_PWR_ON_BAT = "on";
@@ -362,7 +447,7 @@ EOF
     };
 
     nixosConfigurations.laptop-iso = nixpkgs.lib.nixosSystem {
-      specialArgs = { inherit hyprland hyprgrass; };
+      specialArgs = { inherit hyprland; hyprgrass = null; };
       modules = laptopModules ++ [
         ./iso-packages.nix
         ({ lib, pkgs, modulesPath, ... }: {
@@ -398,7 +483,7 @@ EOF
     };
 
     nixosConfigurations.laptop = nixpkgs.lib.nixosSystem {
-      specialArgs = { inherit hyprland hyprgrass; };
+      specialArgs = { inherit hyprland; hyprgrass = null; };
       modules = laptopModules ++ [
         disko.nixosModules.disko
         ./disko-config.nix
@@ -423,7 +508,7 @@ EOF
     };
 
     nixosConfigurations.desktop-iso = nixpkgs.lib.nixosSystem {
-      specialArgs = { inherit hyprland hyprgrass; };
+      specialArgs = { inherit hyprland; hyprgrass = null; };
       modules = desktopModules ++ [
         ./iso-packages.nix
         ({ lib, pkgs, modulesPath, ... }: {
@@ -459,7 +544,7 @@ EOF
     };
 
     nixosConfigurations.desktop = nixpkgs.lib.nixosSystem {
-      specialArgs = { inherit hyprland hyprgrass; };
+      specialArgs = { inherit hyprland; hyprgrass = null; };
       modules = desktopModules ++ [
         disko.nixosModules.disko
         ./disko-config.nix
@@ -469,6 +554,67 @@ EOF
           boot.loader.efi.canTouchEfiVariables = true;
 
           networking.hostName = "desktop";
+
+          users.users.lakin = {
+            isNormalUser = true;
+            home = "/home/lakin";
+            createHome = true;
+            extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
+            initialPassword = "changeme";
+          };
+
+          system.stateVersion = "24.11";
+        })
+      ];
+    };
+
+    nixosConfigurations.asus-tuf-iso = nixpkgs.lib.nixosSystem {
+      specialArgs = { inherit hyprland; hyprgrass = null; };
+      modules = asusModules ++ [
+        ./iso-packages.nix
+        ({ lib, pkgs, modulesPath, ... }: {
+          imports = [
+            (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix")
+          ];
+
+          environment.systemPackages = [ disko.packages.x86_64-linux.disko ];
+
+          users.users.lakin = {
+            isNormalUser = true;
+            home = "/home/lakin";
+            createHome = true;
+            extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
+          };
+
+          system.activationScripts.userDirs = {
+            deps = [ "users" ];
+            text = ''
+              mkdir -p /home/lakin/.config/hyprpanel
+              mkdir -p /home/lakin/.config/hyprshell
+              chown -R lakin:users /home/lakin
+            '';
+          };
+
+          isoImage.squashfsCompression = "gzip -Xcompression-level 1";
+          isoImage.contents = [
+            { source = self; target = "/flake"; }
+            { source = "${self}/INSTALL.md"; target = "/INSTALL.md"; }
+          ];
+        })
+      ];
+    };
+
+    nixosConfigurations.asus-tuf = nixpkgs.lib.nixosSystem {
+      specialArgs = { inherit hyprland; hyprgrass = null; };
+      modules = asusModules ++ [
+        disko.nixosModules.disko
+        ./disko-config-asus-tuf.nix
+        ./iso-packages.nix
+        ({ pkgs, ... }: {
+          boot.loader.systemd-boot.enable = true;
+          boot.loader.efi.canTouchEfiVariables = true;
+
+          networking.hostName = "asus-tuf";
 
           users.users.lakin = {
             isNormalUser = true;

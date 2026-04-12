@@ -1,7 +1,7 @@
 # Force rebuild
-{ pkgs, hyprland, hyprgrass, ... }:
+{ pkgs, lib, hyprland, hyprgrass ? null, ... }:
 let
-  hyprgrassPlugin = hyprgrass.packages.${pkgs.system}.default;
+  hyprgrassEnabled = hyprgrass != null;
 in {
   imports = [ hyprland.nixosModules.default ];
 
@@ -11,8 +11,9 @@ in {
     portalPackage = hyprland.packages.${pkgs.system}.xdg-desktop-portal-hyprland;
   };
 
-  # Make plugin path available
-  environment.etc."hypr/plugins/hyprgrass.so".source = "${hyprgrassPlugin}/lib/libhyprgrass.so";
+  environment.etc."hypr/plugins/hyprgrass.so" = lib.mkIf hyprgrassEnabled {
+    source = "${hyprgrass.packages.${pkgs.system}.default}/lib/libhyprgrass.so";
+  };
 
   services.greetd = {
     enable = true;
@@ -61,7 +62,9 @@ in {
     power-profiles-daemon
   ];
 
-  environment.etc."hypr/hyprland.conf".source = ./hyprland.conf;
+  environment.etc."hypr/hyprland.conf".text =
+    builtins.readFile ./hyprland.conf
+    + lib.optionalString hyprgrassEnabled (builtins.readFile ./hyprgrass.conf);
   environment.etc."hypr/hypridle.conf".source = ./hypridle.conf;
   environment.etc."hypr/hyprlock.conf".source = ./hyprlock.conf;
   environment.etc."wallpaper.jpg".source = ./wallpaper.jpg;

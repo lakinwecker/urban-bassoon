@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-configs=("surface" "laptop" "desktop")
+configs=("surface" "laptop" "desktop" "asus-tuf")
 
 for cfg in "${configs[@]}"; do
   echo "Building ${cfg}-iso..."
