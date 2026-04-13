@@ -53,21 +53,34 @@ TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 sudo cp "$UKI" "$TMP/uki.bin"
 
-echo
-echo "==> UKI file type:"
-file "$TMP/uki.bin"
+# Magic-byte detection (no `file` on live ISO)
+magic_hex() { head -c 4 "$1" | od -An -tx1 | tr -d ' \n'; }
 
-if file "$TMP/uki.bin" | grep -q 'PE32'; then
-  echo "==> PE detected, extracting .initrd section"
-  "$OBJCOPY" -O binary --only-section=.initrd "$TMP/uki.bin" "$TMP/initrd.img"
-else
-  echo "==> Not a PE, treating the whole file as the initrd payload"
-  cp "$TMP/uki.bin" "$TMP/initrd.img"
-fi
-
+UKI_MAGIC=$(magic_hex "$TMP/uki.bin")
 echo
-echo "==> Initrd file type:"
-file "$TMP/initrd.img"
+echo "==> UKI first 4 bytes: $UKI_MAGIC"
+
+case "$UKI_MAGIC" in
+  4d5a*)  # "MZ" — PE/COFF executable
+    echo "==> PE detected (MZ), extracting .initrd section via objcopy"
+    "$OBJCOPY" -O binary --only-section=.initrd "$TMP/uki.bin" "$TMP/initrd.img"
+    ;;
+  28b52ffd)  # zstd magic
+    echo "==> Raw zstd detected, treating entire file as initrd payload"
+    cp "$TMP/uki.bin" "$TMP/initrd.img"
+    ;;
+  1f8b*)  # gzip magic
+    echo "==> Raw gzip detected, treating entire file as initrd payload"
+    cp "$TMP/uki.bin" "$TMP/initrd.img"
+    ;;
+  *)
+    echo "==> Unknown magic $UKI_MAGIC — trying as-is, may fail"
+    cp "$TMP/uki.bin" "$TMP/initrd.img"
+    ;;
+esac
+
+INITRD_MAGIC=$(magic_hex "$TMP/initrd.img")
+echo "==> Extracted initrd first 4 bytes: $INITRD_MAGIC"
 
 echo
 echo "==> Extracting cpio listing"
