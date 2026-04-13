@@ -58,9 +58,13 @@ in {
     btop
     bluez
     bluez-tools
-    networkmanagerapplet
     power-profiles-daemon
   ];
+
+  environment.etc."hypr/scripts/mac-shortcut.sh" = {
+    source = ./scripts/mac-shortcut.sh;
+    mode = "0755";
+  };
 
   environment.etc."hypr/hyprland.conf".text =
     builtins.readFile ./hyprland.conf

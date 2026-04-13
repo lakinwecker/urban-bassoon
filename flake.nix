@@ -42,7 +42,28 @@
         services.blueman.enable = true;
         services.upower.enable = true;
 
-        networking.networkmanager.enable = true;
+        # Wifi via iwd; wired/everything-else via systemd-networkd.
+        # Use impala or iwctl to manage wifi connections.
+        networking.networkmanager.enable = false;
+        networking.wireless.iwd = {
+          enable = true;
+          settings = {
+            General.EnableNetworkConfiguration = true;
+            Network.EnableIPv6 = true;
+            Settings.AutoConnect = true;
+          };
+        };
+        networking.useNetworkd = true;
+        systemd.network.enable = true;
+        # DHCP on any ethernet interface by default.
+        systemd.network.networks."10-ethernet" = {
+          matchConfig.Type = "ether";
+          networkConfig = {
+            DHCP = "yes";
+            IPv6AcceptRA = true;
+            MulticastDNS = true;
+          };
+        };
 
         services.avahi = {
           enable = true;
@@ -120,6 +141,28 @@
           openssh
           # Hardware / system inspection
           inxi
+          # Search / filesystem
+          ripgrep
+          fd
+          du-dust
+          jq
+          # TUI productivity
+          lazygit
+          lazydocker
+          yazi
+          bluetuith
+          impala
+          glow
+          # GitHub
+          gh
+          gh-dash
+          # Kubernetes
+          kubectl
+          k9s
+          kubernetes-helm
+          # Databases
+          pgcli
+          lazysql
         ];
 
         fonts.fontconfig.enable = true;
@@ -436,7 +479,7 @@
             isNormalUser = true;
             home = "/home/lakin";
             createHome = true;
-            extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
+            extraGroups = [ "wheel" "video" "audio" "docker" ];
           };
 
           system.activationScripts.userDirs = {
@@ -490,7 +533,7 @@ EOF
             isNormalUser = true;
             home = "/home/lakin";
             createHome = true;
-            extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
+            extraGroups = [ "wheel" "video" "audio" "docker" ];
             initialPassword = "changeme";
           };
 
@@ -514,7 +557,7 @@ EOF
             isNormalUser = true;
             home = "/home/lakin";
             createHome = true;
-            extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
+            extraGroups = [ "wheel" "video" "audio" "docker" ];
           };
 
           system.activationScripts.userDirs = {
@@ -551,7 +594,7 @@ EOF
             isNormalUser = true;
             home = "/home/lakin";
             createHome = true;
-            extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
+            extraGroups = [ "wheel" "video" "audio" "docker" ];
             initialPassword = "changeme";
           };
 
@@ -575,7 +618,7 @@ EOF
             isNormalUser = true;
             home = "/home/lakin";
             createHome = true;
-            extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
+            extraGroups = [ "wheel" "video" "audio" "docker" ];
           };
 
           system.activationScripts.userDirs = {
@@ -612,7 +655,7 @@ EOF
             isNormalUser = true;
             home = "/home/lakin";
             createHome = true;
-            extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
+            extraGroups = [ "wheel" "video" "audio" "docker" ];
             initialPassword = "changeme";
           };
 
@@ -645,7 +688,7 @@ EOF
             isNormalUser = true;
             home = "/home/lakin";
             createHome = true;
-            extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
+            extraGroups = [ "wheel" "video" "audio" "docker" ];
           };
 
           system.activationScripts.userDirs = {
@@ -691,7 +734,7 @@ EOF
             isNormalUser = true;
             home = "/home/lakin";
             createHome = true;
-            extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" ];
+            extraGroups = [ "wheel" "video" "audio" "docker" ];
             initialPassword = "changeme";
           };
 

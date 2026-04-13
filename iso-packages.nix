@@ -8,7 +8,8 @@
     thunderbird
     firefox
     signal-desktop
-    networkmanager
+    impala
+    iwd
     qogir-icon-theme
     fontconfig
     # Dev tools
