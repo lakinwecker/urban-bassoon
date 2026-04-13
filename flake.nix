@@ -494,14 +494,11 @@
 
             CPU_BOOST_ON_BAT = 0;
             CPU_HWP_DYN_BOOST_ON_BAT = 0;
+            CPU_MIN_PERF_ON_BAT = 0;
+            CPU_MAX_PERF_ON_BAT = 40;
             RUNTIME_PM_ON_BAT = "auto";
-            # USB autosuspend stays ON for non-HID devices; the udev
-            # rule above whitelists mice/keyboards back to "on".
             USB_AUTOSUSPEND = 1;
             WIFI_PWR_ON_BAT = "on";
-            # "default" instead of "powersupersave" — the latter enables
-            # L1.2 substate with ~10ms+ exit latency per PCIe hop, a
-            # known source of periodic input stutter on Asus boards.
             PCIE_ASPM_ON_BAT = "default";
             NMI_WATCHDOG = 0;
             SATA_LINKPWR_ON_BAT = "med_power_with_dipm";

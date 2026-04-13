@@ -11,6 +11,15 @@ in {
     portalPackage = hyprland.packages.${pkgs.system}.xdg-desktop-portal-hyprland;
   };
 
+  xdg.portal = {
+    enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    config = {
+      common.default = [ "hyprland" "gtk" ];
+      hyprland.default = [ "hyprland" "gtk" ];
+    };
+  };
+
   environment.etc."hypr/plugins/hyprgrass.so" = lib.mkIf hyprgrassEnabled {
     source = "${hyprgrass.packages.${pkgs.system}.default}/lib/libhyprgrass.so";
   };
