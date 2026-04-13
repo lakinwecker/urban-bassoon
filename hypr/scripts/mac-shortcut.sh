@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Dispatches a mac-style Super+<key> shortcut to the active window,
+# translating to Ctrl+<key> for GUI apps or Ctrl+Shift+<key> for
+# terminal emulators (where Ctrl+C would send SIGINT etc).
+set -euo pipefail
+
+action="${1:-}"
+if [ -z "$action" ]; then
+  echo "usage: $0 <copy|paste|cut|select-all|undo|redo>" >&2
+  exit 1
+fi
+
+info=$(hyprctl activewindow -j 2>/dev/null || echo '{}')
+class=$(printf '%s' "$info" | jq -r '.class // ""')
+initialClass=$(printf '%s' "$info" | jq -r '.initialClass // ""')
+title=$(printf '%s' "$info" | jq -r '.title // ""')
+
+is_terminal=0
+case "${class},${initialClass},${title}" in
+  *ghostty*|*kitty*|*foot*|*alacritty*|*wezterm*|*Terminal*|*terminal*|*xterm*|*zellij*|*tmux*)
+    is_terminal=1
+    ;;
+esac
+
+send() {
+  # $1 = modifiers (space-separated), $2 = key
+  hyprctl dispatch sendshortcut "$1,$2,activewindow" >/dev/null
+}
+
+case "$action" in
+  copy)
+    if [ "$is_terminal" = 1 ]; then send "CTRL SHIFT" "c"; else send "CTRL" "c"; fi
+    ;;
+  paste)
+    if [ "$is_terminal" = 1 ]; then send "CTRL SHIFT" "v"; else send "CTRL" "v"; fi
+    ;;
+  cut)
+    if [ "$is_terminal" = 1 ]; then send "CTRL SHIFT" "x"; else send "CTRL" "x"; fi
+    ;;
+  select-all)
+    send "CTRL" "a"
+    ;;
+  undo)
+    if [ "$is_terminal" = 1 ]; then send "CTRL SHIFT" "z"; else send "CTRL" "z"; fi
+    ;;
+  redo)
+    send "CTRL SHIFT" "z"
+    ;;
+  *)
+    echo "unknown action: $action" >&2
+    exit 2
+    ;;
+esac
