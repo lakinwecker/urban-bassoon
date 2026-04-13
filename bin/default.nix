@@ -14,6 +14,8 @@ let
     "wl-present"
     "mv-slugify"
     "battery"
+    "ssh-agent-work"
+    "ssh-agent-all"
   ];
   scriptEntries = builtins.listToAttrs (map (name: {
     name = "user-bin/${name}";
