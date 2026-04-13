@@ -46,11 +46,24 @@ else
 fi
 echo "==> objcopy: $OBJCOPY"
 
-# 5. Extract the embedded .initrd section from the UKI
+# 5. Extract the initrd payload. The file may be either:
+#    (a) a true UKI — PE/COFF with an embedded .initrd section
+#    (b) a raw zstd-compressed cpio with a .efi extension (NixOS often does this)
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
-sudo cp "$UKI" "$TMP/uki.efi"
-"$OBJCOPY" -O binary --only-section=.initrd "$TMP/uki.efi" "$TMP/initrd.img"
+sudo cp "$UKI" "$TMP/uki.bin"
+
+echo
+echo "==> UKI file type:"
+file "$TMP/uki.bin"
+
+if file "$TMP/uki.bin" | grep -q 'PE32'; then
+  echo "==> PE detected, extracting .initrd section"
+  "$OBJCOPY" -O binary --only-section=.initrd "$TMP/uki.bin" "$TMP/initrd.img"
+else
+  echo "==> Not a PE, treating the whole file as the initrd payload"
+  cp "$TMP/uki.bin" "$TMP/initrd.img"
+fi
 
 echo
 echo "==> Initrd file type:"
