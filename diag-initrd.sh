@@ -92,14 +92,46 @@ echo "==> Extracted initrd first 4 bytes: $INITRD_MAGIC"
 cp "$TMP/initrd.img" "$TMP/initrd.cpio"
 
 echo
-echo "==> cpio table of contents (first 60 entries):"
-cpio -t < "$TMP/initrd.cpio" 2>&1 | head -60 || true
+echo "==> First cpio archive (likely microcode):"
+cpio -t < "$TMP/initrd.cpio" 2>&1 | head -5 || true
+
+# Find the byte offset of the second archive. NixOS concatenates
+# microcode.cpio + main.cpio. cpio -t reports "N blocks" for the first;
+# we use that to dd past it and reveal whatever comes next (usually
+# a compressed second initrd).
+FIRST_BLOCKS=$(cpio -t < "$TMP/initrd.cpio" 2>&1 | awk '/blocks$/ {print $1; exit}')
+echo "==> First archive: $FIRST_BLOCKS blocks (512 bytes each = $((FIRST_BLOCKS * 512)) bytes)"
+
+dd if="$TMP/initrd.cpio" of="$TMP/second.bin" bs=512 skip="$FIRST_BLOCKS" status=none
+
+SECOND_SIZE=$(stat -c %s "$TMP/second.bin")
+echo "==> Second payload size: $SECOND_SIZE bytes"
+if [ "$SECOND_SIZE" -eq 0 ]; then
+  echo "==> No second archive. Only microcode was present in the UKI!"
+  echo "    This means the real initrd is a SEPARATE file in the ESP."
+  echo
+  echo "==> Other candidate files in /mnt/esp:"
+  sudo find /mnt/esp -type f | xargs -I{} sudo stat -c '%s  %n' {} | sort -rn | head -20
+  exit 0
+fi
+
+SECOND_MAGIC=$(head -c 4 "$TMP/second.bin" | od -An -tx1 | tr -d ' \n')
+echo "==> Second payload first 4 bytes: $SECOND_MAGIC"
+
+case "$SECOND_MAGIC" in
+  28b52ffd) echo "==> zstd — decompressing"; zstd -dc "$TMP/second.bin" > "$TMP/real.cpio" ;;
+  1f8b*)    echo "==> gzip — decompressing"; gzip -dc "$TMP/second.bin" > "$TMP/real.cpio" ;;
+  fd377a58) echo "==> xz — decompressing"; xz -dc "$TMP/second.bin" > "$TMP/real.cpio" ;;
+  04224d18) echo "==> lz4 — decompressing"; lz4 -dc "$TMP/second.bin" > "$TMP/real.cpio" ;;
+  3037*)    echo "==> raw cpio"; cp "$TMP/second.bin" "$TMP/real.cpio" ;;
+  *)        echo "==> unknown magic $SECOND_MAGIC, trying as-is"; cp "$TMP/second.bin" "$TMP/real.cpio" ;;
+esac
 
 echo
-echo "==> Extracting cpio to $TMP/extract"
+echo "==> Extracting real initrd to $TMP/extract"
 mkdir -p "$TMP/extract"
 cd "$TMP/extract"
-cpio -idm --no-absolute-filenames < "$TMP/initrd.cpio" 2>&1 || true
+cpio -idm --no-absolute-filenames < "$TMP/real.cpio" 2>&1 | tail -5 || true
 cd - >/dev/null
 echo "==> Extracted file count: $(find "$TMP/extract" -type f 2>/dev/null | wc -l)"
 
