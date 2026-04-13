@@ -343,16 +343,29 @@
         services.asusd.enable = true;
         services.supergfxd.enable = true;
 
-        # Boot in integrated mode (iGPU only) for battery life.
-        # Switch at runtime with: supergfxctl -m Hybrid  (requires logout)
-        environment.etc."supergfxd.conf".text = builtins.toJSON {
-          mode = "Integrated";
-          vfio_enable = false;
-          vfio_save = false;
-          always_reboot = false;
-          no_logind = false;
-          logout_timeout_s = 180;
-          hotplug_type = "None";
+        # supergfxd opens /etc/supergfxd.conf with O_RDWR | O_CREAT and
+        # panics if it can't (with the misleading "The directory ... is
+        # missing" message). NixOS's environment.etc would make it a
+        # symlink to the read-only nix store, which fails the O_RDWR
+        # open. Write it as a real mutable file via an activation
+        # script instead. Format is JSON, schema confirmed against
+        # supergfxctl 5.2.7's GfxConfig struct.
+        system.activationScripts.supergfxdConfig = {
+          deps = [ "etc" ];
+          text = ''
+            cat > /etc/supergfxd.conf <<'JSON'
+            {
+              "mode": "Integrated",
+              "vfio_enable": false,
+              "vfio_save": false,
+              "always_reboot": false,
+              "no_logind": false,
+              "logout_timeout_s": 180,
+              "hotplug_type": "None"
+            }
+            JSON
+            chmod 0644 /etc/supergfxd.conf
+          '';
         };
 
         hardware.graphics = {
@@ -401,13 +414,17 @@
         boot.kernelParams = [
           "nvidia_drm.modeset=1"
           "nvidia_drm.fbdev=1"
-          # Cap CPU idle depth. Full C10 exit latency on Raptor Lake
-          # can spike to hundreds of ms under load — visible as mouse/
-          # input stutter. C3 keeps most idle savings, cuts worst-case
-          # wake latency dramatically. Raise to higher number if battery
-          # suffers and stutter is gone.
-          "intel_idle.max_cstate=3"
-          "processor.max_cstate=3"
+          # Disable Intel GPU Panel Self-Refresh. PSR entry during
+          # static screen + PSR exit on input events causes 50–500ms
+          # stutters that look like keyboard+mouse+compositor freezing
+          # together. Single most common Intel-laptop input-stutter fix.
+          "i915.enable_psr=0"
+          # NOTE: previously capped C-states with intel_idle.max_cstate=3
+          # and processor.max_cstate=3, but processor.max_cstate=3 forced
+          # the kernel into ACPI idle fallback (C1_ACPI/C2_ACPI/C3_ACPI)
+          # with exit latencies *worse* than Intel's native C10. Both
+          # removed so intel_idle can use its native, well-characterized
+          # states.
         ];
 
         # Distribute hardware IRQs across cores instead of piling on CPU0.
