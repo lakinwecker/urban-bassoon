@@ -335,19 +335,25 @@
           MOZ_ENABLE_WAYLAND = "1";
           ELECTRON_OZONE_PLATFORM_HINT = "auto";
         };
+        # Systemd-based stage-1 gives an emergency shell on failure
+        # instead of the scripted initrd's dead-end r/* prompt.
+        boot.initrd.systemd.enable = true;
+        boot.kernelParams = lib.mkAfter [ "boot.shell_on_fail" ];
+
         # Initrd needs NVMe drivers or the second drive's partlabel
         # symlinks race and never appear, hanging stage-1 on
         # "waiting for /dev/disk/by-partlabel/disk-home-luks".
         boot.initrd.availableKernelModules = [
           "nvme"
           "nvme_core"
+          "vmd"        # Intel VMD — often enabled in BIOS on Raptor Lake laptops
           "xhci_pci"
           "ahci"
           "usbhid"
           "usb_storage"
           "sd_mod"
         ];
-        boot.initrd.kernelModules = [ "nvme" ];
+        boot.initrd.kernelModules = [ "nvme" "vmd" ];
 
         boot.kernelParams = [
           "nvidia_drm.modeset=1"
