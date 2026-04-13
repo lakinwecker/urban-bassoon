@@ -39,10 +39,17 @@
     };
   };
 
-  systemd.services."nebula@mesh".serviceConfig = {
-    DynamicUser = lib.mkForce false;
-    User = lib.mkForce "root";
-    Group = lib.mkForce "root";
+  systemd.services."nebula@mesh" = {
+    unitConfig.ConditionPathExists = [
+      "/etc/nebula/ca.crt"
+      "/etc/nebula/host.crt"
+      "/etc/nebula/host.key"
+    ];
+    serviceConfig = {
+      DynamicUser = lib.mkForce false;
+      User = lib.mkForce "root";
+      Group = lib.mkForce "root";
+    };
   };
 
   networking.firewall.allowedUDPPorts = [ 4242 ];
