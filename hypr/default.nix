@@ -88,8 +88,6 @@ in {
       ln -sf /etc/hypr/hypridle.conf /home/lakin/.config/hypr/hypridle.conf
       ln -sf /etc/hypr/hyprlock.conf /home/lakin/.config/hypr/hyprlock.conf
       chown -h lakin:users /home/lakin/.config/hypr/hyprland.conf /home/lakin/.config/hypr/hypridle.conf /home/lakin/.config/hypr/hyprlock.conf
-      # Force copy hyprpanel config (overwrite any existing) — install
-      # sets ownership atomically.
       install -m 0644 -o lakin -g users /etc/hyprpanel/config.json /home/lakin/.config/hyprpanel/config.json
       install -m 0644 -o lakin -g users /etc/hyprpanel/custom.css /home/lakin/.config/hyprpanel/styles/custom.css
       install -m 0644 -o lakin -g users /etc/avatar.png /home/lakin/.face.icon

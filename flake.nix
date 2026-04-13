@@ -180,32 +180,19 @@
 
         hardware.graphics.enable = true;
 
-        # Repair ownership of any home dir left root-owned by an earlier
-        # buggy activation. All home-touching scripts have been fixed to
-        # use `install -d -o lakin -g users`, but pre-existing wrong-owned
-        # dirs from before that fix landed need a one-time chown. This
-        # script also runs after every other home-touching script as a
-        # safety net.
         system.activationScripts.userHomeOwnership = {
           deps = [ "users" "hyprConfig" "ghosttyConfig" "userBin" ];
           text = ''
-            user=lakin
-            home=/home/$user
-
-            # Standard XDG dirs (idempotent — install -d only acts if missing)
-            install -d -o $user -g users "$home/.config"
-            install -d -o $user -g users "$home/.local"
-            install -d -o $user -g users "$home/.local/share"
-            install -d -o $user -g users "$home/.local/state"
-            install -d -o $user -g users "$home/.cache"
-
-            # Repair ownership of dirs that should ALWAYS be user-owned.
-            # Never blanket-chown $home (would clobber .ssh perms etc).
-            chown -R $user:users \
-              "$home/.config" \
-              "$home/.local" \
-              "$home/.cache" \
-              "$home/bin" 2>/dev/null || true
+            install -d -o lakin -g users /home/lakin/.config
+            install -d -o lakin -g users /home/lakin/.local
+            install -d -o lakin -g users /home/lakin/.local/share
+            install -d -o lakin -g users /home/lakin/.local/state
+            install -d -o lakin -g users /home/lakin/.cache
+            chown -R lakin:users \
+              /home/lakin/.config \
+              /home/lakin/.local \
+              /home/lakin/.cache \
+              /home/lakin/bin 2>/dev/null || true
           '';
         };
       })
