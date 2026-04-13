@@ -42,11 +42,7 @@
   "wallpaper.enable": true,
   "wallpaper.image": "/etc/wallpaper.jpg",
 
-  "theme.matugen": true,
-  "theme.matugen.mode": "dark",
-  "theme.matugen.scheme_type": "tonal-spot",
-  "theme.matugen.variation": "standard_1",
-  "theme.matugen.contrast": 0.0,
+  "theme.matugen": false,
 
   "theme.bar.transparent": true,
   "theme.bar.opacity": 90
