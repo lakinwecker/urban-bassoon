@@ -106,6 +106,22 @@
           pulse.enable = true;
         };
 
+        # ── Music (MPD) ─────────────────────────────────────────────────
+        services.mpd = {
+          enable = true;
+          user = "lakin";
+          musicDirectory = "/home/lakin/music";
+          extraConfig = ''
+            audio_output {
+              type "pipewire"
+              name "PipeWire Output"
+            }
+          '';
+        };
+        systemd.services.mpd.environment = {
+          XDG_RUNTIME_DIR = "/run/user/1000";
+        };
+
         # ── Shells ────────────────────────────────────────────────────────
         programs.bash.enable = true;
 
@@ -144,12 +160,14 @@
           # Search / filesystem
           ripgrep
           fd
+          fzf
           dust
           jq
           # TUI productivity
           lazygit
           lazydocker
           yazi
+          ncmpcpp
           bluetuith
           impala
           glow

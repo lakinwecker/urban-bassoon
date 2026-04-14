@@ -16,6 +16,7 @@ end
 
 starship init fish | source
 zoxide init fish | source
+fzf --fish | source
 
 function envsource
     for line in (cat $argv | grep -v '^#')

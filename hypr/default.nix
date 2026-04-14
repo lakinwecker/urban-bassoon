@@ -67,6 +67,8 @@ in {
     btop
     bluez
     bluez-tools
+    blueman
+    pavucontrol
     power-profiles-daemon
   ];
 
