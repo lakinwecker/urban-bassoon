@@ -8,3 +8,5 @@ window-padding-x = 4
 window-padding-y = 4
 window-decoration = false
 gtk-titlebar = false
+
+shell-integration-features = cursor,sudo,title,ssh-env,ssh-terminfo

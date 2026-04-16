@@ -14,6 +14,11 @@ if not test -S $SSH_AUTH_SOCK
     eval (ssh-agent -c -a $SSH_AUTH_SOCK) >/dev/null 2>&1
 end
 
+# Ghostty shell integration
+if test -n "$GHOSTTY_RESOURCES_DIR"
+    source "$GHOSTTY_RESOURCES_DIR/shell-integration/fish/vendor_conf.d/ghostty-shell-integration.fish"
+end
+
 starship init fish | source
 zoxide init fish | source
 fzf --fish | source
