@@ -85,7 +85,6 @@ in {
   environment.etc."hypr/hyprlock.conf".source = ./hyprlock.conf;
   environment.etc."wallpaper.jpg".source = hyprWallpaper;
   environment.etc."hyprpanel/config.json".source = ./hyprpanel-config.json;
-  environment.etc."hyprpanel/custom.css".source = ./hyprpanel-custom.css;
   environment.etc."avatar.png".source = ./avatar.png;
 
   system.activationScripts.hyprConfig = {
@@ -100,7 +99,6 @@ in {
       ln -sf /etc/hypr/hyprlock.conf /home/lakin/.config/hypr/hyprlock.conf
       chown -h lakin:users /home/lakin/.config/hypr/hyprland.conf /home/lakin/.config/hypr/hypridle.conf /home/lakin/.config/hypr/hyprlock.conf
       install -m 0644 -o lakin -g users /etc/hyprpanel/config.json /home/lakin/.config/hyprpanel/config.json
-      install -m 0644 -o lakin -g users /etc/hyprpanel/custom.css /home/lakin/.config/hyprpanel/styles/custom.css
       install -m 0644 -o lakin -g users /etc/avatar.png /home/lakin/.face.icon
       install -m 0644 -o lakin -g users /etc/wallpaper.jpg /home/lakin/.config/background
     '';

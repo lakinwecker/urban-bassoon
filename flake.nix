@@ -38,7 +38,21 @@
         nixpkgs.config.allowUnfree = true;
         hardware.enableRedistributableFirmware = true;
         users.defaultUserShell = pkgs.fish;
-        hardware.bluetooth.enable = true;
+        hardware.bluetooth = {
+          enable = true;
+          powerOnBoot = true;
+          settings = {
+            General = {
+              FastConnectable = true;
+              Experimental = true;   # enables battery reporting & LE features
+            };
+            Policy = {
+              AutoEnable = true;
+              ReconnectAttempts = 7;
+              ReconnectIntervals = "1,2,4,8,16,32,64";
+            };
+          };
+        };
         services.blueman.enable = true;
         services.upower.enable = true;
 
@@ -48,9 +62,16 @@
         networking.wireless.iwd = {
           enable = true;
           settings = {
-            General.EnableNetworkConfiguration = true;
+            General = {
+              EnableNetworkConfiguration = true;
+              RoamThreshold = "-70";        # roam before signal gets bad
+              RoamThreshold5G = "-76";
+            };
             Network.EnableIPv6 = true;
             Settings.AutoConnect = true;
+            Rank = {
+              BandModifier5Ghz = "2.0";     # strongly prefer 5GHz over 2.4GHz
+            };
           };
         };
         networking.useNetworkd = true;
@@ -106,13 +127,14 @@
           pulse.enable = true;
           wireplumber.enable = true;
         };
-        # Ensure PipeWire picks up Bluetooth audio profiles (A2DP, HFP)
-        environment.etc."wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
-          bluez_monitor.properties = {
-            ["bluez5.enable-sbc-xq"] = true,
-            ["bluez5.enable-msbc"] = true,
-            ["bluez5.enable-hw-volume"] = true,
-            ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hg hfp_ag ]",
+        # Bluetooth audio — WirePlumber 0.5+ uses JSON config, not Lua
+        environment.etc."wireplumber/wireplumber.conf.d/51-bluez.conf".text = ''
+          monitor.bluez.properties = {
+            bluez5.enable-sbc-xq = true
+            bluez5.enable-msbc = true
+            bluez5.enable-hw-volume = true
+            bluez5.headset-roles = [ hsp_hs hsp_ag hfp_hg hfp_ag ]
+            bluez5.auto-connect = [ hfp_hg a2dp_sink ]
           }
         '';
 
@@ -201,6 +223,7 @@
           nerd-fonts.fira-code
           nerd-fonts.inconsolata
           nerd-fonts.iosevka
+          nerd-fonts.jetbrains-mono
           nerd-fonts.ubuntu
           noto-fonts
           noto-fonts-color-emoji
@@ -546,12 +569,13 @@
             RUNTIME_PM_ON_BAT = "auto";
             USB_AUTOSUSPEND = 1;
             WIFI_PWR_ON_BAT = "off";
+            WIFI_PWR_ON_AC = "off";
             PCIE_ASPM_ON_BAT = "default";
             NMI_WATCHDOG = 0;
             SATA_LINKPWR_ON_BAT = "med_power_with_dipm";
           };
         };
-        powerManagement.powertop.enable = true;
+        powerManagement.powertop.enable = false;
         environment.systemPackages = with pkgs; [ powertop lm_sensors ];
       })
     ];
