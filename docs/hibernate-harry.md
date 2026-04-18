@@ -1,4 +1,4 @@
-# Hibernate Setup (Surface Pro 9)
+# Hibernate Setup (harry — Surface Pro 9)
 
 Requires two rebuilds — first to create swap, second to set resume offset.
 
@@ -9,11 +9,11 @@ sudo btrfs subvolume create /mnt/swap
 sudo umount /mnt
 
 # First rebuild + reboot
-sudo nixos-rebuild switch --flake .#surface && sudo reboot
+sudo nixos-rebuild switch --flake .#harry && sudo reboot
 
-# After reboot — get offset, paste into boot.kernelParams resume_offset in flake.nix
+# After reboot — get offset, paste into boot.kernelParams resume_offset in hosts/harry/default.nix
 sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 
 # Second rebuild + reboot
-sudo nixos-rebuild switch --flake .#surface && sudo reboot
+sudo nixos-rebuild switch --flake .#harry && sudo reboot
 ```

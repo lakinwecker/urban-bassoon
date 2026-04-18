@@ -106,7 +106,7 @@
           isoImage.squashfsCompression = "gzip -Xcompression-level 1";
           isoImage.contents = [
             { source = self; target = "/flake"; }
-            { source = "${self}/INSTALL.md"; target = "/INSTALL.md"; }
+            { source = "${self}/docs/install.md"; target = "/INSTALL.md"; }
           ];
         })
       ];
