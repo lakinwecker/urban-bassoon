@@ -35,8 +35,8 @@ in {
   };
 
   environment.systemPackages = with pkgs; [
-    hyprshell
-    onagre
+    rofi
+    nwg-drawer
     bibata-cursors
     hyprlock
     hypridle
@@ -82,6 +82,9 @@ in {
     source = ./scripts/mac-shortcut.sh;
     mode = "0755";
   };
+
+  environment.etc."hypr/rofi-tokyonight.rasi".source = ./rofi-tokyonight.rasi;
+  environment.etc."hypr/nwg-drawer.css".source = ./nwg-drawer.css;
 
   environment.etc."hypr/hyprland.conf".text =
     builtins.readFile ./hyprland.conf

@@ -1,0 +1,82 @@
+/* Tokyonight theme for rofi — matches hyprpanel */
+* {
+    bg:           #1f2335;
+    bg-alt:       #24283b;
+    card:         #292e42;
+    fg:           #c0caf5;
+    fg-dim:       #565f89;
+    border-col:   #363a54;
+    accent:       #bb9af7;
+    accent-alt:   #7dcfff;
+    urgent:       #f7768e;
+
+    background-color: transparent;
+    text-color:       @fg;
+    font:             "FiraCode Nerd Font 13";
+}
+
+window {
+    width:            35%;
+    background-color: @bg;
+    border:           2px;
+    border-color:     @border-col;
+    border-radius:    12px;
+    padding:          0;
+}
+
+mainbox {
+    padding:  0;
+    children: [ inputbar, listview ];
+}
+
+inputbar {
+    background-color: @bg-alt;
+    padding:          14px 16px;
+    spacing:          10px;
+    children:         [ prompt, entry ];
+    border:           0 0 1px 0;
+    border-color:     @border-col;
+}
+
+prompt {
+    text-color: @accent;
+}
+
+entry {
+    placeholder:       "Search...";
+    placeholder-color: @fg-dim;
+}
+
+listview {
+    lines:            10;
+    padding:          8px 0;
+    scrollbar:        false;
+    fixed-height:     false;
+}
+
+element {
+    padding:       10px 16px;
+    spacing:       12px;
+    border-radius: 0;
+}
+
+element normal.normal {
+    background-color: transparent;
+}
+
+element alternate.normal {
+    background-color: transparent;
+}
+
+element selected.normal {
+    background-color: @card;
+    text-color:       @accent;
+}
+
+element-icon {
+    size: 24px;
+}
+
+element-text {
+    vertical-align: 0.5;
+}

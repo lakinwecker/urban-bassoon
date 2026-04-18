@@ -57,6 +57,11 @@
         # Asus TUF F16 — 2560x1600 display, 1.25x scale
         monitor=eDP-1,preferred,auto,1.25
         monitor=,preferred,auto,1
+
+        # Swap Alt and Super to match Mac-style layout
+        input {
+            kb_options = altwin:swap_lalt_lwin
+        }
       '';
       hyprWallpaper = ./hypr/wallpaper-roach.jpg;
     };
@@ -88,7 +93,6 @@
             text = ''
               install -d -o lakin -g users /home/lakin/.config
               install -d -o lakin -g users /home/lakin/.config/hyprpanel
-              install -d -o lakin -g users /home/lakin/.config/hyprshell
             '';
           };
 
