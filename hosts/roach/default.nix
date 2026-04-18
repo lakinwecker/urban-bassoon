@@ -34,7 +34,7 @@
     text = ''
       cat > /etc/supergfxd.conf <<'JSON'
       {
-        "mode": "Integrated",
+        "mode": "Hybrid",
         "vfio_enable": false,
         "vfio_save": false,
         "always_reboot": false,
@@ -59,6 +59,14 @@
     nvidiaSettings = true;
     powerManagement.enable = true;
     package = config.boot.kernelPackages.nvidiaPackages.stable;
+    prime = {
+      offload = {
+        enable = true;
+        enableOffloadCmd = true;  # provides nvidia-offload wrapper
+      };
+      intelBusId = "PCI:0:2:0";
+      nvidiaBusId = "PCI:1:0:0";
+    };
   };
   services.xserver.videoDrivers = [ "nvidia" ];
 
@@ -150,5 +158,6 @@
     };
   };
   powerManagement.powertop.enable = false;
+
   environment.systemPackages = with pkgs; [ powertop lm_sensors ];
 }

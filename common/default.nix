@@ -13,5 +13,6 @@
     ../starship
     ../bin
     ../zellij
+    ../ai
   ];
 }

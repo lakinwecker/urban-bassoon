@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Dispatches a mac-style Super+<key> shortcut to the active window,
-# translating to Ctrl+<key> for GUI apps or Ctrl+Shift+<key> for
-# terminal emulators (where Ctrl+C would send SIGINT etc).
+# Dispatches mac-style shortcuts that need terminal detection.
+# Copy/paste are handled directly in hyprland.conf via X11 legacy keys
+# (Ctrl+Insert / Shift+Insert) — no detection needed for those.
 set -euo pipefail
 
 action="${1:-}"
 if [ -z "$action" ]; then
-  echo "usage: $0 <copy|paste|cut|select-all|undo|redo>" >&2
+  echo "usage: $0 <cut|select-all|undo|redo>" >&2
   exit 1
 fi
 
@@ -28,12 +28,6 @@ send() {
 }
 
 case "$action" in
-  copy)
-    if [ "$is_terminal" = 1 ]; then send "CTRL SHIFT" "c"; else send "CTRL" "c"; fi
-    ;;
-  paste)
-    if [ "$is_terminal" = 1 ]; then send "CTRL SHIFT" "v"; else send "CTRL" "v"; fi
-    ;;
   cut)
     if [ "$is_terminal" = 1 ]; then send "CTRL SHIFT" "x"; else send "CTRL" "x"; fi
     ;;

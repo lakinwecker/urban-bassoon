@@ -50,9 +50,10 @@
     ];
 
     # ── specialArgs per host ─────────────────────────────────────────
-    defaultSpecialArgs = { inherit hyprland; hyprgrass = null; };
+    defaultSpecialArgs = { inherit hyprland; hyprgrass = null; ollamaCuda = false; };
     harrySpecialArgs = { inherit hyprland hyprgrass; };
     roachSpecialArgs = defaultSpecialArgs // {
+      ollamaCuda = true;
       hyprHostConfig = ''
         # Asus TUF F16 — 2560x1600 display, 1.25x scale
         monitor=eDP-1,preferred,auto,1.25
