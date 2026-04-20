@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, username, ... }:
 {
   environment.systemPackages = with pkgs; [
     zellij
@@ -9,11 +9,11 @@
   system.activationScripts.zellijConfig = {
     deps = [ "users" ];
     text = ''
-      ZELLIJ_CONFIG="/home/lakin/.config/zellij"
+      ZELLIJ_CONFIG="/home/${username}/.config/zellij"
       if [ ! -d "$ZELLIJ_CONFIG" ]; then
         mkdir -p "$ZELLIJ_CONFIG"
         ln -sf /etc/zellij/config.kdl "$ZELLIJ_CONFIG/config.kdl"
-        chown -R lakin:users "$ZELLIJ_CONFIG"
+        chown -R ${username}:users "$ZELLIJ_CONFIG"
       fi
     '';
   };

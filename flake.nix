@@ -28,16 +28,19 @@
 
     harryModules = commonModules ++ [
       nixos-hardware.nixosModules.microsoft-surface-pro-intel
+      ./hypr
       ./hosts/harry
     ];
 
     sebbersModules = commonModules ++ [
       nixos-hardware.nixosModules.common-cpu-amd
       nixos-hardware.nixosModules.common-gpu-amd
+      ./hypr
       ./hosts/sebbers
     ];
 
     trunkieModules = commonModules ++ [
+      ./hypr
       ./hosts/trunkie
     ];
 
@@ -46,12 +49,21 @@
       nixos-hardware.nixosModules.common-gpu-nvidia-nonprime
       nixos-hardware.nixosModules.common-pc-laptop
       nixos-hardware.nixosModules.common-pc-laptop-ssd
+      ./hypr
       ./hosts/roach
     ];
 
+    cornfieldModules = commonModules ++ [
+      nixos-hardware.nixosModules.common-cpu-intel
+      nixos-hardware.nixosModules.common-pc-laptop
+      nixos-hardware.nixosModules.common-pc-laptop-ssd
+      ./xfce
+      ./hosts/cornfield
+    ];
+
     # ── specialArgs per host ─────────────────────────────────────────
-    defaultSpecialArgs = { inherit hyprland; hyprgrass = null; ollamaCuda = false; };
-    harrySpecialArgs = { inherit hyprland hyprgrass; };
+    defaultSpecialArgs = { username = "lakin"; inherit hyprland; hyprgrass = null; ollamaCuda = false; };
+    harrySpecialArgs = { username = "lakin"; inherit hyprland hyprgrass; };
     roachSpecialArgs = defaultSpecialArgs // {
       ollamaCuda = true;
       hyprHostConfig = ''
@@ -66,6 +78,13 @@
       '';
       hyprWallpaper = ./hypr/wallpaper-roach.jpg;
     };
+    cornfieldSpecialArgs = {
+      username = "clown";
+      hyprland = null;
+      hyprgrass = null;
+      ollamaCuda = false;
+      xfceWallpaper = ./xfce/wallpaper-cornfield.jpeg;
+    };
 
     # ── Helpers ───────────────────────────────────────────────────────
     mkIso = {
@@ -75,16 +94,16 @@
       inherit specialArgs;
       modules = hostModules ++ [
         ./iso-packages.nix
-        ({ modulesPath, ... }: {
+        ({ modulesPath, username, ... }: {
           imports = [
             (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix")
           ];
 
           environment.systemPackages = [ disko.packages.x86_64-linux.disko ];
 
-          users.users.lakin = {
+          users.users.${username} = {
             isNormalUser = true;
-            home = "/home/lakin";
+            home = "/home/${username}";
             createHome = true;
             extraGroups = [ "wheel" "video" "audio" "docker" ];
           };
@@ -92,8 +111,7 @@
           system.activationScripts.userDirs = {
             deps = [ "users" ];
             text = ''
-              install -d -o lakin -g users /home/lakin/.config
-              install -d -o lakin -g users /home/lakin/.config/hyprpanel
+              install -d -o ${username} -g users /home/${username}/.config
             '';
           };
 
@@ -118,15 +136,15 @@
         disko.nixosModules.disko
         diskoConfig
         ./iso-packages.nix
-        ({ ... }: {
+        ({ username, ... }: {
           boot.loader.systemd-boot.enable = true;
           boot.loader.efi.canTouchEfiVariables = true;
 
           networking.hostName = hostname;
 
-          users.users.lakin = {
+          users.users.${username} = {
             isNormalUser = true;
-            home = "/home/lakin";
+            home = "/home/${username}";
             createHome = true;
             extraGroups = [ "wheel" "video" "audio" "docker" ];
             initialPassword = "changeme";
@@ -149,13 +167,13 @@
         specialArgs = harrySpecialArgs;
         hostname = "harry";
         extraModules = [
-          ({ ... }: {
+          ({ username, ... }: {
             system.activationScripts.lanMouseConfig = {
               deps = [ "users" ];
               text = ''
-                install -d -o lakin -g users /home/lakin/.config
-                install -d -o lakin -g users /home/lakin/.config/lan-mouse
-                cat > /home/lakin/.config/lan-mouse/config.toml << 'EOF'
+                install -d -o ${username} -g users /home/${username}/.config
+                install -d -o ${username} -g users /home/${username}/.config/lan-mouse
+                cat > /home/${username}/.config/lan-mouse/config.toml << 'EOF'
 port = 4343
 
 [top]
@@ -164,7 +182,7 @@ ips = ["192.168.50.15"]
 port = 4343
 activate_on_startup = true
 EOF
-                chown lakin:users /home/lakin/.config/lan-mouse/config.toml
+                chown ${username}:users /home/${username}/.config/lan-mouse/config.toml
               '';
             };
           })
@@ -199,6 +217,17 @@ EOF
         specialArgs = roachSpecialArgs;
         hostname = "roach";
         diskoConfig = ./hosts/roach/disko-config.nix;
+      };
+
+      # ── cornfield (ThinkPad T460) ──────────────────────────────────
+      cornfield-iso = mkIso {
+        hostModules = cornfieldModules;
+        specialArgs = cornfieldSpecialArgs;
+      };
+      cornfield = mkInstalled {
+        hostModules = cornfieldModules;
+        specialArgs = cornfieldSpecialArgs;
+        hostname = "cornfield";
       };
     };
   };

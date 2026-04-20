@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, username, ... }:
 {
   environment.systemPackages = with pkgs; [
     starship
@@ -9,10 +9,10 @@
   system.activationScripts.starshipConfig = {
     deps = [ "users" ];
     text = ''
-      STARSHIP_CONFIG="/home/lakin/.config/starship.toml"
+      STARSHIP_CONFIG="/home/${username}/.config/starship.toml"
       if [ ! -e "$STARSHIP_CONFIG" ]; then
         ln -sf /etc/starship/starship.toml "$STARSHIP_CONFIG"
-        chown -h lakin:users "$STARSHIP_CONFIG"
+        chown -h ${username}:users "$STARSHIP_CONFIG"
       fi
     '';
   };

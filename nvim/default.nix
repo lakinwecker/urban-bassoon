@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, username, ... }:
 {
   programs.neovim = {
     enable = true;
@@ -52,7 +52,7 @@
   system.activationScripts.nvimConfig = {
     deps = [ "users" ];
     text = ''
-      NVIM_CONFIG="/home/lakin/.config/nvim"
+      NVIM_CONFIG="/home/${username}/.config/nvim"
       mkdir -p "$NVIM_CONFIG/lua/config"
       mkdir -p "$NVIM_CONFIG/lua/plugins"
       ln -sf /etc/nvim/init.lua "$NVIM_CONFIG/init.lua"
@@ -70,7 +70,7 @@
       ln -sf /etc/nvim/lua/plugins/linter.lua "$NVIM_CONFIG/lua/plugins/linter.lua"
       ln -sf /etc/nvim/lua/plugins/disabled.lua "$NVIM_CONFIG/lua/plugins/disabled.lua"
       ln -sf /etc/nvim/lua/plugins/example.lua "$NVIM_CONFIG/lua/plugins/example.lua"
-      chown -R lakin:users "$NVIM_CONFIG"
+      chown -R ${username}:users "$NVIM_CONFIG"
     '';
   };
 }

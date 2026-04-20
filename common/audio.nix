@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, username, ... }:
 {
   # ── Bluetooth ───────────────────────────────────────────────────────
   hardware.bluetooth = {
@@ -28,6 +28,17 @@
       bluez5.headset-roles = [ hsp_hs hsp_ag hfp_hg hfp_ag ]
       bluez5.auto-connect = [ hfp_hg a2dp_sink ]
     }
+
+    monitor.bluez.rules = [
+      {
+        matches = [ { node.name = "~bluez_output.*" } ]
+        actions = {
+          update-props = {
+            session.suspend-timeout-seconds = 0
+          }
+        }
+      }
+    ]
   '';
 
   # ── PipeWire ────────────────────────────────────────────────────────
@@ -42,8 +53,8 @@
   # ── Music (MPD) ────────────────────────────────────────────────────
   services.mpd = {
     enable = true;
-    user = "lakin";
-    settings.music_directory = "/home/lakin/music";
+    user = username;
+    settings.music_directory = "/home/${username}/music";
     settings.audio_output = [{
       type = "pipewire";
       name = "PipeWire Output";

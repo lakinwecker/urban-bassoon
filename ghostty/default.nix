@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{ pkgs, username, ... }: {
   environment.systemPackages = with pkgs; [
     ghostty
   ];
@@ -8,10 +8,10 @@
   system.activationScripts.ghosttyConfig = {
     deps = [ "users" ];
     text = ''
-      install -d -o lakin -g users /home/lakin/.config
-      install -d -o lakin -g users /home/lakin/.config/ghostty
-      ln -sf /etc/ghostty/config /home/lakin/.config/ghostty/config
-      chown -h lakin:users /home/lakin/.config/ghostty/config
+      install -d -o ${username} -g users /home/${username}/.config
+      install -d -o ${username} -g users /home/${username}/.config/ghostty
+      ln -sf /etc/ghostty/config /home/${username}/.config/ghostty/config
+      chown -h ${username}:users /home/${username}/.config/ghostty/config
     '';
   };
 }

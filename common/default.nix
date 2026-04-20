@@ -6,10 +6,10 @@
     ./audio.nix
     ./packages.nix
     ./user.nix
-    ../hypr
     ../ghostty
     ../nvim
     ../fish
+    ../nushell
     ../starship
     ../bin
     ../zellij

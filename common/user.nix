@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, username, ... }:
 {
   # ── Nix settings ────────────────────────────────────────────────────
   nixpkgs.hostPlatform = "x86_64-linux";
@@ -22,18 +22,18 @@
 
   # ── Home directory ownership ───────────────────────────────────────
   system.activationScripts.userHomeOwnership = {
-    deps = [ "users" "hyprConfig" "ghosttyConfig" "userBin" ];
+    deps = [ "users" "ghosttyConfig" "userBin" ];
     text = ''
-      install -d -o lakin -g users /home/lakin/.config
-      install -d -o lakin -g users /home/lakin/.local
-      install -d -o lakin -g users /home/lakin/.local/share
-      install -d -o lakin -g users /home/lakin/.local/state
-      install -d -o lakin -g users /home/lakin/.cache
-      chown -R lakin:users \
-        /home/lakin/.config \
-        /home/lakin/.local \
-        /home/lakin/.cache \
-        /home/lakin/bin 2>/dev/null || true
+      install -d -o ${username} -g users /home/${username}/.config
+      install -d -o ${username} -g users /home/${username}/.local
+      install -d -o ${username} -g users /home/${username}/.local/share
+      install -d -o ${username} -g users /home/${username}/.local/state
+      install -d -o ${username} -g users /home/${username}/.cache
+      chown -R ${username}:users \
+        /home/${username}/.config \
+        /home/${username}/.local \
+        /home/${username}/.cache \
+        /home/${username}/bin 2>/dev/null || true
     '';
   };
 }

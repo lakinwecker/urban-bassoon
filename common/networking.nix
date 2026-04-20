@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ lib, pkgs, username, ... }:
 {
   # ── Wifi (iwd) ──────────────────────────────────────────────────────
   networking.networkmanager.enable = lib.mkForce false;
@@ -136,9 +136,9 @@
   # ── Syncthing ──────────────────────────────────────────────────────
   services.syncthing = {
     enable = true;
-    user = "lakin";
-    dataDir = "/home/lakin";
-    configDir = "/home/lakin/.config/syncthing";
+    user = username;
+    dataDir = "/home/${username}";
+    configDir = "/home/${username}/.config/syncthing";
     openDefaultPorts = true;
   };
 }

@@ -6,6 +6,7 @@
     fish
     nushell
     bash
+    direnv
     keepassxc
     pass
     gnupg

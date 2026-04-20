@@ -1,5 +1,5 @@
 # Force rebuild
-{ pkgs, lib, hyprland, hyprgrass ? null, hyprHostConfig ? "", hyprWallpaper ? ./wallpaper.jpg, ... }:
+{ pkgs, lib, username, hyprland, hyprgrass ? null, hyprHostConfig ? "", hyprWallpaper ? ./wallpaper.jpg, ... }:
 let
   hyprgrassEnabled = hyprgrass != null;
 in {
@@ -29,7 +29,7 @@ in {
     settings = {
       default_session = {
         command = "${hyprland.packages.${pkgs.system}.hyprland}/bin/start-hyprland";
-        user = "lakin";
+        user = username;
       };
     };
   };
@@ -100,20 +100,20 @@ in {
   system.activationScripts.hyprConfig = {
     deps = [ "users" ];
     text = ''
-      install -d -o lakin -g users /home/lakin/.config
-      install -d -o lakin -g users /home/lakin/.config/hypr
-      install -d -o lakin -g users /home/lakin/.config/hyprpanel
-      install -d -o lakin -g users /home/lakin/.config/hyprpanel/styles
-      install -d -o lakin -g users /home/lakin/.config/btop
-      ln -sf /etc/btop/btop.conf /home/lakin/.config/btop/btop.conf
-      chown -h lakin:users /home/lakin/.config/btop/btop.conf
-      ln -sf /etc/hypr/hyprland.conf /home/lakin/.config/hypr/hyprland.conf
-      ln -sf /etc/hypr/hypridle.conf /home/lakin/.config/hypr/hypridle.conf
-      ln -sf /etc/hypr/hyprlock.conf /home/lakin/.config/hypr/hyprlock.conf
-      chown -h lakin:users /home/lakin/.config/hypr/hyprland.conf /home/lakin/.config/hypr/hypridle.conf /home/lakin/.config/hypr/hyprlock.conf
-      install -m 0644 -o lakin -g users /etc/hyprpanel/config.json /home/lakin/.config/hyprpanel/config.json
-      install -m 0644 -o lakin -g users /etc/avatar.png /home/lakin/.face.icon
-      install -m 0644 -o lakin -g users /etc/wallpaper.jpg /home/lakin/.config/background
+      install -d -o ${username} -g users /home/${username}/.config
+      install -d -o ${username} -g users /home/${username}/.config/hypr
+      install -d -o ${username} -g users /home/${username}/.config/hyprpanel
+      install -d -o ${username} -g users /home/${username}/.config/hyprpanel/styles
+      install -d -o ${username} -g users /home/${username}/.config/btop
+      ln -sf /etc/btop/btop.conf /home/${username}/.config/btop/btop.conf
+      chown -h ${username}:users /home/${username}/.config/btop/btop.conf
+      ln -sf /etc/hypr/hyprland.conf /home/${username}/.config/hypr/hyprland.conf
+      ln -sf /etc/hypr/hypridle.conf /home/${username}/.config/hypr/hypridle.conf
+      ln -sf /etc/hypr/hyprlock.conf /home/${username}/.config/hypr/hyprlock.conf
+      chown -h ${username}:users /home/${username}/.config/hypr/hyprland.conf /home/${username}/.config/hypr/hypridle.conf /home/${username}/.config/hypr/hyprlock.conf
+      install -m 0644 -o ${username} -g users /etc/hyprpanel/config.json /home/${username}/.config/hyprpanel/config.json
+      install -m 0644 -o ${username} -g users /etc/avatar.png /home/${username}/.face.icon
+      install -m 0644 -o ${username} -g users /etc/wallpaper.jpg /home/${username}/.config/background
     '';
   };
 }

@@ -102,6 +102,7 @@
   boot.extraModprobeConfig = ''
     options rtw89_pci disable_aspm_l1=y disable_aspm_l1ss=y
     options rtw89_core disable_ps_mode=y
+    options btusb enable_autosuspend=n
   '';
 
   boot.kernelParams = [
@@ -127,6 +128,8 @@
   services.udev.extraRules = ''
     # USB HID (bInterfaceClass 03) — disable autosuspend
     ACTION=="add", SUBSYSTEM=="usb", ATTR{bInterfaceClass}=="03", TEST=="power/control", ATTR{power/control}="on"
+    # Bluetooth adapter (bDeviceClass e0 = Wireless Controller) — disable autosuspend
+    ACTION=="add", SUBSYSTEM=="usb", ATTR{bDeviceClass}=="e0", TEST=="power/control", ATTR{power/control}="on"
     # Also target the parent device for class-03 children
     ACTION=="add", SUBSYSTEM=="usb", ATTR{bDeviceClass}=="00", ATTR{product}=="*Mouse*", TEST=="power/control", ATTR{power/control}="on"
     ACTION=="add", SUBSYSTEM=="usb", ATTR{bDeviceClass}=="00", ATTR{product}=="*Keyboard*", TEST=="power/control", ATTR{power/control}="on"
@@ -150,6 +153,7 @@
       CPU_MAX_PERF_ON_BAT = 40;
       RUNTIME_PM_ON_BAT = "auto";
       USB_AUTOSUSPEND = 1;
+      USB_EXCLUDE_BTUSB = 1;
       WIFI_PWR_ON_BAT = "off";
       WIFI_PWR_ON_AC = "off";
       PCIE_ASPM_ON_BAT = "default";

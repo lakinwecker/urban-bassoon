@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, username, ... }:
 let
   scripts = [
     "ponymake"
@@ -28,14 +28,14 @@ in {
   system.activationScripts.userBin = {
     deps = [ "users" ];
     text = ''
-      BIN_DIR="/home/lakin/bin"
-      install -d -o lakin -g users "$BIN_DIR"
+      BIN_DIR="/home/${username}/bin"
+      install -d -o ${username} -g users "$BIN_DIR"
       for script in ${builtins.concatStringsSep " " scripts}; do
         TARGET="$BIN_DIR/$script"
         # Only symlink if target doesn't exist or is already a symlink (don't overwrite user scripts)
         if [ ! -e "$TARGET" ] || [ -L "$TARGET" ]; then
           ln -sf "/etc/user-bin/$script" "$TARGET"
-          chown -h lakin:users "$TARGET"
+          chown -h ${username}:users "$TARGET"
         fi
       done
     '';
