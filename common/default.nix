@@ -14,5 +14,6 @@
     ../bin
     ../zellij
     ../ai
+    ../latex
   ];
 }

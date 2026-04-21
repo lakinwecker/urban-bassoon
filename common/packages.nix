@@ -15,6 +15,8 @@
     openssh
     # Hardware / system inspection
     inxi
+    # DNS
+    dnsutils
     # Search / filesystem
     ripgrep
     fd
