@@ -62,8 +62,8 @@
     ];
 
     # ── specialArgs per host ─────────────────────────────────────────
-    defaultSpecialArgs = { username = "lakin"; inherit hyprland; hyprgrass = null; ollamaCuda = false; };
-    harrySpecialArgs = { username = "lakin"; inherit hyprland hyprgrass; };
+    defaultSpecialArgs = { username = "lakin"; inherit hyprland; hyprgrass = null; ollamaCuda = false; hyprHostConfig = ""; hyprWallpaper = ./hypr/wallpaper.jpg; };
+    harrySpecialArgs = defaultSpecialArgs // { inherit hyprgrass; };
     roachSpecialArgs = defaultSpecialArgs // {
       ollamaCuda = true;
       hyprHostConfig = ''
@@ -202,6 +202,7 @@ EOF
       sebbers = mkInstalled {
         hostModules = sebbersModules;
         hostname = "sebbers";
+        diskoConfig = ./hosts/sebbers/disko-config.nix;
       };
 
       # ── trunkie (Threadripper desktop) ──────────────────────────

@@ -6,9 +6,9 @@
 #   ./install.sh <host> --disk <disk-id>            # format + install
 #   ./install.sh <host> --disk <disk-id> --wipe      # blkdiscard first
 #
-# For roach (dual-drive):
-#   ./install.sh roach --disk <main-id> --home-disk <home-id>
-#   ./install.sh roach --disk <main-id> --home-disk <home-id> --wipe
+# For dual-drive hosts (roach, sebbers):
+#   ./install.sh sebbers --disk <main-id> --home-disk <home-id>
+#   ./install.sh sebbers --disk <main-id> --home-disk <home-id> --wipe
 #
 # <disk-id> is a /dev/disk/by-id/... path or a bare device like /dev/sda.
 set -euo pipefail
@@ -21,7 +21,7 @@ Hosts: harry sebbers trunkie roach cornfield
 
 Options:
   --disk <id>       Primary disk (required). /dev/disk/by-id/... or /dev/sdX
-  --home-disk <id>  Second disk for /home (roach only)
+  --home-disk <id>  Second disk for /home (roach, sebbers)
   --wipe            blkdiscard all target disks before formatting
 
 Examples:
@@ -50,9 +50,9 @@ done
 
 [ -n "$DISK" ] || { echo "ERROR: --disk is required." >&2; usage; }
 
-# Roach requires --home-disk
-if [ "$HOST" = "roach" ] && [ -z "$HOME_DISK" ]; then
-  echo "ERROR: roach has a dual-drive layout. Pass --home-disk <id>." >&2
+# Dual-drive hosts require --home-disk
+if { [ "$HOST" = "roach" ] || [ "$HOST" = "sebbers" ]; } && [ -z "$HOME_DISK" ]; then
+  echo "ERROR: $HOST has a dual-drive layout. Pass --home-disk <id>." >&2
   exit 1
 fi
 
@@ -118,7 +118,7 @@ DISKO_ARGS=(
   --disk main "$DISK"
 )
 
-# Roach dual-drive: pass the home disk too
+# Dual-drive hosts: pass the home disk too
 if [ -n "$HOME_DISK" ]; then
   DISKO_ARGS+=(--disk home "$HOME_DISK")
 fi
