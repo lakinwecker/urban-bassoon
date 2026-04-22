@@ -17,7 +17,7 @@ usage() {
   cat >&2 <<EOF
 Usage: $0 <host> --disk <disk-id> [--home-disk <disk-id>] [--wipe]
 
-Hosts: harry sebbers trunkie roach cornfield
+Hosts: harry sebbers trunkie roach souris cornfield
 
 Options:
   --disk <id>       Primary disk (required). /dev/disk/by-id/... or /dev/sdX

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-hosts=("harry" "sebbers" "trunkie" "roach" "cornfield")
+hosts=("harry" "sebbers" "trunkie" "roach" "souris" "cornfield")
 nix_cmd=(nix --extra-experimental-features 'nix-command flakes')
 
 usage() {

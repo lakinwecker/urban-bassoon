@@ -61,6 +61,12 @@
       ./hosts/cornfield
     ];
 
+    sourisModules = commonModules ++ [
+      nixos-hardware.nixosModules.dell-xps-13-9360
+      ./gnome
+      ./hosts/souris
+    ];
+
     # ── specialArgs per host ─────────────────────────────────────────
     defaultSpecialArgs = { username = "lakin"; inherit hyprland; hyprgrass = null; ollamaCuda = false; hyprHostConfig = ""; hyprWallpaper = ./hypr/wallpaper.jpg; };
     harrySpecialArgs = defaultSpecialArgs // { inherit hyprgrass; };
@@ -97,6 +103,12 @@
       ollamaCuda = false;
       xfceWallpaper = ./xfce/wallpaper-cornfield.jpeg;
       xfceAvatar = ./xfce/avatar-cornfield.jpg;
+    };
+    sourisSpecialArgs = {
+      username = "souris";
+      hyprland = null;
+      hyprgrass = null;
+      ollamaCuda = false;
     };
 
     # ── Helpers ───────────────────────────────────────────────────────
@@ -240,6 +252,18 @@ EOF
         specialArgs = roachSpecialArgs;
         hostname = "roach";
         diskoConfig = ./hosts/roach/disko-config.nix;
+      };
+
+      # ── souris (Dell XPS 13 9360) ──────────────────────────────────
+      souris-iso = mkIso {
+        hostModules = sourisModules;
+        specialArgs = sourisSpecialArgs;
+        hostname = "souris";
+      };
+      souris = mkInstalled {
+        hostModules = sourisModules;
+        specialArgs = sourisSpecialArgs;
+        hostname = "souris";
       };
 
       # ── cornfield (ThinkPad T460) ──────────────────────────────────
