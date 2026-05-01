@@ -20,7 +20,16 @@
     "usb_storage"
     "sd_mod"
   ];
-  boot.initrd.kernelModules = [ "nvme" ];
+  boot.initrd.kernelModules = [
+    "nvme"
+    # Haptic touchpad — I2C HID on Panther Lake
+    "i2c_hid_acpi"
+    "i2c_designware_platform"
+    "i2c_designware_core"
+    "intel_lpss"
+    "intel_lpss_pci"
+    "hid_multitouch"
+  ];
 
   boot.kernelParams = [
     # Intel Panel Self-Refresh causes input stutter on idle screens —
@@ -54,6 +63,8 @@
       PLATFORM_PROFILE_ON_BAT = "low-power";
       PLATFORM_PROFILE_ON_AC = "performance";
 
+      CPU_BOOST_ON_AC = 1;
+      CPU_HWP_DYN_BOOST_ON_AC = 1;
       CPU_BOOST_ON_BAT = 0;
       CPU_HWP_DYN_BOOST_ON_BAT = 0;
       RUNTIME_PM_ON_BAT = "auto";

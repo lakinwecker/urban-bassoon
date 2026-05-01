@@ -97,8 +97,12 @@ EOF
       monitor=,preferred,auto,1
 
       # Swap Alt and Super to match Mac-style layout
+      # Enable tap-to-click — haptic pad has no physical click button
       input {
           kb_options = altwin:swap_lalt_lwin
+          touchpad {
+              tap-to-click=yes
+          }
       }
     '';
   };

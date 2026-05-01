@@ -147,6 +147,8 @@
       PLATFORM_PROFILE_ON_BAT = "low-power";
       PLATFORM_PROFILE_ON_AC = "performance";
 
+      CPU_BOOST_ON_AC = 1;
+      CPU_HWP_DYN_BOOST_ON_AC = 1;
       CPU_BOOST_ON_BAT = 0;
       CPU_HWP_DYN_BOOST_ON_BAT = 0;
       CPU_MIN_PERF_ON_BAT = 0;
