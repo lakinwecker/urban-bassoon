@@ -54,9 +54,10 @@ EOF
       monitor=eDP-1,2560x1600@120,auto,1.25
       monitor=,preferred,auto,1
 
-      # Swap Alt and Super to match Mac-style layout
-      input {
-          kb_options = altwin:swap_lalt_lwin
+      # Swap Alt and Super to match Mac-style layout (laptop keyboard only)
+      device {
+          name = at-translated-set-2-keyboard
+          kb_options = altwin:swap_lalt_lwin,caps:backspace
       }
     '';
   };
@@ -78,8 +79,9 @@ EOF
       monitor=eDP-1,preferred,auto,1.25
       monitor=,preferred,auto,1
 
-      # Swap Alt and Super to match Mac-style layout
-      input {
+      # Swap Alt and Super to match Mac-style layout (laptop keyboard only)
+      device {
+          name = at-translated-set-2-keyboard
           kb_options = altwin:swap_lalt_lwin
       }
     '';
@@ -96,10 +98,14 @@ EOF
       monitor=eDP-1,2880x1800@60,auto,1.5
       monitor=,preferred,auto,1
 
-      # Swap Alt and Super to match Mac-style layout
+      # Swap Alt and Super to match Mac-style layout (laptop keyboard only)
+      device {
+          name = at-translated-set-2-keyboard
+          kb_options = altwin:swap_lalt_lwin
+      }
+
       # Enable tap-to-click — haptic pad has no physical click button
       input {
-          kb_options = altwin:swap_lalt_lwin
           touchpad {
               tap-to-click=yes
           }
