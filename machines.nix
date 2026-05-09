@@ -82,7 +82,7 @@ EOF
       # Swap Alt and Super to match Mac-style layout (laptop keyboard only)
       device {
           name = at-translated-set-2-keyboard
-          kb_options = altwin:swap_lalt_lwin
+          kb_options = altwin:swap_lalt_lwin,caps:backspace
       }
     '';
     hyprWallpaper = ./hypr/wallpaper-roach.jpg;
