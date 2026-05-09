@@ -14,6 +14,15 @@
     # Dev tools
     devenv
     ranger
+    # Charm tools
+    glow
+    gum
+    skate
+    charm
+    soft-serve
+    vhs
+    mods
+    pop
     # Neovim dependencies for LazyVim
     gcc
     gnumake
