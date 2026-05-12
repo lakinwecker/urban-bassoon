@@ -15,7 +15,7 @@ CRITICAL_COLOR=0xffff0000
 LOW_START_SIZE=5
 LOW_GROWTH_DIV=8
 
-POLL_INTERVAL=30
+POLL_INTERVAL=5
 
 bat=$(ls -d /sys/class/power_supply/BAT* 2>/dev/null | head -n1 || true)
 if [ -z "$bat" ]; then
