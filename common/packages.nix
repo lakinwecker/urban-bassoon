@@ -2,6 +2,7 @@
 {
   environment.systemPackages = with pkgs; [
     claude-code
+    bun
     # Shell extras
     fish
     nushell

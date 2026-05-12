@@ -83,6 +83,11 @@ in {
     mode = "0755";
   };
 
+  environment.etc."hypr/scripts/battery-borders.sh" = {
+    source = ./scripts/battery-borders.sh;
+    mode = "0755";
+  };
+
   environment.etc."hypr/rofi-tokyonight.rasi".source = ./rofi-tokyonight.rasi;
   environment.etc."hypr/nwg-drawer.css".source = ./nwg-drawer.css;
 
