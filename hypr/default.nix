@@ -56,7 +56,8 @@ in {
   environment.systemPackages = with pkgs; [
     rofi
     nwg-drawer
-    bibata-cursors
+    bibata-cursors          # XCURSOR fallback for xwayland / X11 apps
+    rose-pine-hyprcursor    # SVG-based hyprcursor — sharp at magnification
     hyprlock
     hypridle
     hyprpolkitagent

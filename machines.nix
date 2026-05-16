@@ -53,7 +53,7 @@ EOF
     hardware = [ "common-cpu-amd" "common-gpu-amd" "common-pc-laptop" "common-pc-laptop-ssd" ];
     diskoConfig = ./hosts/sebbers/disko-config.nix;
     dualDrive = true;
-    hyprDynamicCursorsMode = "stretch";
+    hyprDynamicCursorsMode = "tilt";
     hyprHostConfig = ''
       # AMD laptop — 2560x1600@120Hz display, 1.25x scale
       monitor=eDP-1,2560x1600@120,auto,1.25
