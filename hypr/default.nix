@@ -1,7 +1,23 @@
 # Force rebuild
-{ pkgs, lib, username, hyprland, hyprgrass ? null, hyprHostConfig ? "", hyprWallpaper ? ./wallpaper.jpg, ... }:
+{ pkgs, lib, username, hyprland, hyprgrass ? null, hyprDynamicCursors, hyprHostConfig ? "", hyprWallpaper ? ./wallpaper.jpg, hyprDynamicCursorsMode ? "none", ... }:
 let
   hyprgrassEnabled = hyprgrass != null;
+  # Shake-to-find is on by default for every Hyprland host. `mode` (tilt /
+  # rotate / stretch / none) is opt-in per-host via machines.nix.
+  dynamicCursorsConfig = ''
+    plugin = /etc/hypr/plugins/hypr-dynamic-cursors.so
+
+    plugin:dynamic-cursors {
+        enabled = true
+        mode = ${hyprDynamicCursorsMode}
+
+        shake {
+            enabled = true
+            # Lower than the 6.0 default — triggers magnification sooner.
+            threshold = 4.0
+        }
+    }
+  '';
 in {
   imports = [ hyprland.nixosModules.default ];
 
@@ -23,6 +39,9 @@ in {
   environment.etc."hypr/plugins/hyprgrass.so" = lib.mkIf hyprgrassEnabled {
     source = "${hyprgrass.packages.${pkgs.system}.default}/lib/libhyprgrass.so";
   };
+
+  environment.etc."hypr/plugins/hypr-dynamic-cursors.so".source =
+    "${hyprDynamicCursors.packages.${pkgs.system}.default}/lib/libhypr-dynamic-cursors.so";
 
   services.greetd = {
     enable = true;
@@ -94,6 +113,7 @@ in {
   environment.etc."hypr/hyprland.conf".text =
     builtins.readFile ./hyprland.conf
     + lib.optionalString hyprgrassEnabled (builtins.readFile ./hyprgrass.conf)
+    + "\n# hypr-dynamic-cursors plugin\n" + dynamicCursorsConfig
     + "\n# Per-host overrides\n" + hyprHostConfig;
   environment.etc."hypr/hypridle.conf".source = ./hypridle.conf;
   environment.etc."hypr/hyprlock.conf".source = ./hyprlock.conf;

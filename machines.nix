@@ -8,6 +8,10 @@
 #   hyprgrass      enable touch gestures (Surface), default: false
 #   hyprHostConfig hyprland monitor/input config string, default: ""
 #   hyprWallpaper  path to wallpaper, default: ./hypr/wallpaper.jpg
+#   hyprDynamicCursorsMode
+#                  hypr-dynamic-cursors simulation mode (shake-to-find is
+#                  always on). One of "none" | "tilt" | "rotate" | "stretch"
+#                  (stretch = comic squash/stretch). Default: "none".
 #   xfceWallpaper  path to wallpaper, default: null
 #   xfceAvatar     path to avatar, default: null
 #   ollamaCuda     enable CUDA ollama, default: false
@@ -49,6 +53,7 @@ EOF
     hardware = [ "common-cpu-amd" "common-gpu-amd" "common-pc-laptop" "common-pc-laptop-ssd" ];
     diskoConfig = ./hosts/sebbers/disko-config.nix;
     dualDrive = true;
+    hyprDynamicCursorsMode = "stretch";
     hyprHostConfig = ''
       # AMD laptop — 2560x1600@120Hz display, 1.25x scale
       monitor=eDP-1,2560x1600@120,auto,1.25

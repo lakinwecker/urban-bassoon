@@ -19,9 +19,21 @@
       url = "github:horriblename/hyprgrass";
       inputs.hyprland.follows = "hyprland";
     };
+    # Dynamic cursors plugin — shake-to-find by default on every Hyprland host,
+    # plus opt-in tilt/rotate/stretch simulation modes via machines.nix.
+    # Pinned to 57e14ed (2026-03-09) — the commit immediately before PR #128
+    # "use new rendering like hl" (b736d6, 2026-03-29). That refactor targets
+    # post-v0.54.3 hyprland (renames g_pHyprOpenGL->m_renderData to
+    # g_pHyprRenderer->m_renderData and changes IPassElement::draw() signature),
+    # neither of which match our pinned hyprland v0.54.3. Bump in lockstep
+    # whenever hyprland is bumped.
+    hypr-dynamic-cursors = {
+      url = "github:VirtCode/hypr-dynamic-cursors/57e14edd0ae265b01828e466e287e96eb1e84dd3";
+      inputs.hyprland.follows = "hyprland";
+    };
   };
 
-  outputs = { self, nixpkgs, nixos-hardware, disko, hyprland, hyprgrass, ... }:
+  outputs = { self, nixpkgs, nixos-hardware, disko, hyprland, hyprgrass, hypr-dynamic-cursors, ... }:
   let
     # ── Machine registry ────────────────────────────────────────────
     machines = import ./machines.nix;
@@ -46,6 +58,8 @@
       // (if m.desktop == "hyprland" then {
         hyprHostConfig = m.hyprHostConfig or "";
         hyprWallpaper  = m.hyprWallpaper or ./hypr/wallpaper.jpg;
+        hyprDynamicCursors     = hypr-dynamic-cursors;
+        hyprDynamicCursorsMode = m.hyprDynamicCursorsMode or "none";
       } else {})
       // (if m.desktop == "xfce" then {
         xfceWallpaper = m.xfceWallpaper or null;
