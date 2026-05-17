@@ -1,7 +1,7 @@
 font-family = Iosevka Nerd Font Mono
 font-size = 9
 
-theme = TokyoNight Storm
+theme = light:TokyoNight Day,dark:TokyoNight Storm
 background-opacity = 0.85
 
 window-padding-x = 4

@@ -1,30 +1,105 @@
 #!/usr/bin/env bash
+# Toggle light/dark across ghostty, nvim, hyprland, GTK apps, Firefox.
+# Source of truth: dconf color-scheme (same key gsettings uses). Persisted
+# to a state file so new nvim instances start in the right mode.
+#
+# Uses `dconf` rather than `gsettings` because gsettings needs the
+# gsettings-desktop-schemas in XDG_DATA_DIRS, which Hyprland's exec
+# environment does not always provide. dconf reads/writes the underlying
+# database directly and the change notifications still reach apps that
+# subscribe via xdg-desktop-portal (Firefox, ghostty).
 set -euo pipefail
 
-current=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null || echo "'prefer-dark'")
+# Hyprland's exec spawns this with a minimal PATH — make sure NixOS's
+# system tools (dconf, hyprctl, nvim, notify-send) are findable.
+export PATH="/run/wrappers/bin:/run/current-system/sw/bin:/etc/profiles/per-user/$USER/bin:${PATH:-}"
+
+scheme_key="/org/gnome/desktop/interface/color-scheme"
+theme_key="/org/gnome/desktop/interface/gtk-theme"
+
+current=$(dconf read "$scheme_key" 2>/dev/null || true)
 
 if [ "$current" = "'prefer-dark'" ]; then
-  scheme="prefer-light"
-  gtk="Adwaita"
+  mode="light"
+  gtk_scheme="'prefer-light'"
+  gtk_theme="'Adwaita'"
   hypr_active="0xff797593"
   hypr_inactive="0xffcecacd"
-  label="light"
+  nvim_bg="light"
+  nvim_colors="tokyonight-day"
 else
-  scheme="prefer-dark"
-  gtk="Adwaita-dark"
+  mode="dark"
+  gtk_scheme="'prefer-dark'"
+  gtk_theme="'Adwaita-dark'"
   hypr_active="0xffd7827e"
   hypr_inactive="0xff286983"
-  label="dark"
+  nvim_bg="dark"
+  nvim_colors="tokyonight-storm"
 fi
 
-gsettings set org.gnome.desktop.interface color-scheme "$scheme"
-gsettings set org.gnome.desktop.interface gtk-theme "$gtk"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}"
+mkdir -p "$state_dir"
+printf '%s\n' "$mode" > "$state_dir/theme-mode"
 
-if command -v hyprctl >/dev/null 2>&1 && [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+# GTK / GNOME / xdg-desktop-portal — drives Firefox + ghostty auto-follow.
+dconf write "$scheme_key" "$gtk_scheme"
+dconf write "$theme_key" "$gtk_theme"
+
+# Hyprland border colors (live).
+if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && command -v hyprctl >/dev/null 2>&1; then
   hyprctl keyword general:col.active_border "$hypr_active" >/dev/null
   hyprctl keyword general:col.inactive_border "$hypr_inactive" >/dev/null
 fi
 
+# Nvim — push to every running instance via its auto-socket.
+if command -v nvim >/dev/null 2>&1; then
+  runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+  shopt -s nullglob
+  for sock in "$runtime_dir"/nvim.*.[0-9]*; do
+    [ -S "$sock" ] || continue
+    nvim --server "$sock" --remote-expr \
+      "execute('set background=$nvim_bg | silent! colorscheme $nvim_colors')" \
+      >/dev/null 2>&1 || true
+  done
+  shopt -u nullglob
+fi
+
+# Ghostty auto-follows the color-scheme via xdg-desktop-portal when its
+# config uses `theme = light:X,dark:Y`. No explicit action needed here.
+
+# Claude Code — settings.json `theme` field. Preserves the `-daltonized`
+# or `-ansi` suffix (e.g. dark-daltonized <-> light-daltonized). New claude
+# sessions pick this up; already-running ones need a relaunch.
+claude_settings="$HOME/.claude/settings.json"
+if command -v jq >/dev/null 2>&1 && [ -f "$claude_settings" ]; then
+  current_theme=$(jq -r '.theme // "dark"' "$claude_settings")
+  if [ "$mode" = "light" ]; then
+    new_theme="${current_theme/dark/light}"
+  else
+    new_theme="${current_theme/light/dark}"
+  fi
+  tmp=$(mktemp)
+  if jq --arg t "$new_theme" '.theme = $t' "$claude_settings" > "$tmp"; then
+    mv "$tmp" "$claude_settings"
+  else
+    rm -f "$tmp"
+  fi
+fi
+
+# Signal Desktop — theme-setting in ephemeral.json. Running Signal won't
+# pick this up live; set Signal's Appearance to "Match system" if you
+# want live updates (Signal then follows the portal color-scheme we just
+# set via dconf).
+signal_settings="$HOME/.config/Signal/ephemeral.json"
+if command -v jq >/dev/null 2>&1 && [ -f "$signal_settings" ]; then
+  tmp=$(mktemp)
+  if jq --arg t "$mode" '."theme-setting" = $t' "$signal_settings" > "$tmp"; then
+    mv "$tmp" "$signal_settings"
+  else
+    rm -f "$tmp"
+  fi
+fi
+
 if command -v notify-send >/dev/null 2>&1; then
-  notify-send -t 1500 "Theme: $label"
+  notify-send -t 1500 "Theme: $mode"
 fi
